@@ -10,6 +10,9 @@ def get_overlapping_employees_with_shift(board, week, day, shift):
 
 class NoTwoNewInOneShift(Rule):
 
+    def __init__(self):
+        self.id = 1
+
     def check(self, employee, board, week=None, day=None, shift=None):
 
         if not employee.isNew:
@@ -23,7 +26,10 @@ class NoTwoNewInOneShift(Rule):
             return len(new_employees_other_then_current) == 0
 
 
-class TwoMaleEmployeeDuringWeekend(Rule):
+class NoTwoMaleEmployeeDuringWeekend(Rule):
+
+    def __init__(self):
+        self.id = 2
 
     @staticmethod
     def overlapping_employee_are_male(board, week, shift):
@@ -40,6 +46,9 @@ class TwoMaleEmployeeDuringWeekend(Rule):
 
 
 class CantDoShiftDayAfterAndBeforeWeekend(Rule):
+
+    def __init__(self):
+        self.id = 3
 
     def check(self, employee, board, week=None, day=None, shift=None):
         if day is None:
@@ -66,6 +75,9 @@ class CantDoShiftDayAfterAndBeforeWeekend(Rule):
 
 class CantWorkDayAfterNight(Rule):
 
+    def __init__(self):
+        self.id = 4
+
     def check(self, employee, board, week=None, day=None, shift=None):
         if day is None or day == 0 and week == 0:
             return True
@@ -78,10 +90,6 @@ class CantWorkDayAfterNight(Rule):
         else:
             return employee != board.midWeekMapping[week][day - 1].from_shift_to_employee[MidWeekShiftType.Night]
 
-
-# class EmployeeCanDoShortOrLongInWeekendOnceAMonth:
-#
-#     def check(self, employee, board, week=None, day=None, shift=None):
 
 def get_all_employees_for_shift_in_for_previous_days(board, week=None, day=None, shift=None):
     if day == 0:
@@ -100,7 +108,11 @@ def get_all_employees_for_shift_in_for_previous_weekends(board, week=None, day=N
     return all_employee_for_shift_in_previous_weekends
 
 
-class IfEmployeeDidShortHeWontDoItAgainOrWillNotDoNight:
+class IfEmployeeDidShortHeWontDoItAgainOrWillNotDoLong:
+
+    def __init__(self):
+        self.id = 4
+
     def check(self, employee, board, week=None, day=None, shift=None):
         if day is None:
             return True
@@ -120,12 +132,15 @@ class IfEmployeeDidShortHeWontDoItAgainOrWillNotDoNight:
                 employees_that_did_long = get_all_employees_for_shift_in_for_previous_days(board, week, day,
                                                                                            MidWeekShiftType.Long)
                 return (employee not in employees_that_did_shorts) and (employee not in employees_that_did_nights) and (
-                            employee not in employees_that_did_long)
+                        employee not in employees_that_did_long)
             else:
                 return True
 
 
 class EmployeeCanDoShortOrLongInWeekendOnceAMonth:
+
+    def __init__(self):
+        self.id = 5
 
     def check(self, employee, board, week=None, day=None, shift=None):
         if day is not None:
@@ -143,6 +158,9 @@ class EmployeeCanDoShortOrLongInWeekendOnceAMonth:
 
 class EmployeeCanDoFridayNightOrSaturdayNightOnceAMonth:
 
+    def __init__(self):
+        self.id = 6
+
     def check(self, employee, board, week=None, day=None, shift=None):
         if day is not None:
             return True
@@ -151,8 +169,7 @@ class EmployeeCanDoFridayNightOrSaturdayNightOnceAMonth:
                 employees_that_did_friday = get_all_employees_for_shift_in_for_previous_weekends(board, week, day,
                                                                                                  WeekendShiftsTypes.Friday)
                 employees_that_did_sats = get_all_employees_for_shift_in_for_previous_weekends(board, week, day,
-                                                                                                WeekendShiftsTypes.Saturday)
+                                                                                               WeekendShiftsTypes.Saturday)
                 return (employee not in employees_that_did_friday) and (employee not in employees_that_did_sats)
             else:
                 return True
-

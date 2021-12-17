@@ -1,5 +1,6 @@
 import pickle
 import random
+import sys
 import time
 
 from algorithem import algorithm_based_priority_queue
@@ -9,9 +10,8 @@ from rules.Rules import *
 from uxui.googlesheetinterface import SpreadsheetClient
 from uxui.user_data_convertor_googlesheet import UserDataConvertorGoogleSheetBased
 
-MASTER_SHEET = '11I3-hBco33Kt4rtCgZ8ijDd40UuIRSaDLE1YY_Ll3xw'
+load_from_cache = False
 
-load_from_cache = True
 
 class AppRunner:
 
@@ -22,7 +22,7 @@ class AppRunner:
     def get_all_employee_ids():
         master_sheet_client = SpreadsheetClient(MASTER_SHEET)
         employees_sheet_ids = master_sheet_client.load_cells_given_from_to('B2', 'B100')
-        return [cell.text for  single_row in employees_sheet_ids for cell in single_row if cell.text != '']
+        return [cell.text for single_row in employees_sheet_ids for cell in single_row if cell.text != '']
 
     @staticmethod
     def get_result_sheet():
@@ -39,7 +39,7 @@ class AppRunner:
             employees.append(employee)
             weekend_constraints = EmployeeConstraintsForWeekends(from_weekend_to_constraints={}, employee=employee)
             for weekend in WeekOfTheMonth:
-                #need to enforce less calling to api
+                # need to enforce less calling to api
                 print("weekend-flow: getting constraints for employee {} week {}".format(employee.name, weekend))
                 time.sleep(3)
                 data_convertor.get_constraint_for_weekend(weekend, weekend_constraints)
@@ -56,7 +56,7 @@ class AppRunner:
             employees.append(employee)
             midweek_constraints = EmployeeConstraintsForWeekDays(from_day_to_constraint={}, employee=employee)
             for week in WeekOfTheMonth:
-                #need to enforce less calls to api
+                # need to enforce less calls to api
                 print("mid-week-flow: getting constraints for employee {} week {}".format(employee.name, week))
                 time.sleep(3)
                 data_convertor.get_constraint_for_midweek(week, midweek_constraints)
@@ -66,14 +66,14 @@ class AppRunner:
 
     def get_all_rules(self):
         return [
-                CantDoShiftDayAfterAndBeforeWeekend(),
-                TwoMaleEmployeeDuringWeekend(),
-                NoTwoNewInOneShift(),
-                CantWorkDayAfterNight(),
-                IfEmployeeDidShortHeWontDoItAgainOrWillNotDoNight(),
-                EmployeeCanDoShortOrLongInWeekendOnceAMonth(),
-                EmployeeCanDoFridayNightOrSaturdayNightOnceAMonth()
-                ]
+            CantDoShiftDayAfterAndBeforeWeekend(),
+            NoTwoMaleEmployeeDuringWeekend(),
+            NoTwoNewInOneShift(),
+            CantWorkDayAfterNight(),
+            IfEmployeeDidShortHeWontDoItAgainOrWillNotDoLong(),
+            EmployeeCanDoShortOrLongInWeekendOnceAMonth(),
+            EmployeeCanDoFridayNightOrSaturdayNightOnceAMonth()
+        ]
 
     def get_result_sheet_convertor(self):
         result_sheet_id = self.get_result_sheet()
@@ -92,7 +92,8 @@ class AppRunner:
             random.shuffle(constraints)
             employee_fresh = copy.deepcopy(employees)
 
-            algorithm_based_priority_queue.solve_weekend(board_for_test, employee_fresh, constraints, False, self.get_all_rules())
+            algorithm_based_priority_queue.solve_weekend(board_for_test, employee_fresh, constraints, False,
+                                                         self.get_all_rules())
             new_weight = board_weighter.weight_weekend(board_for_test)
             if new_weight < weight:
                 weight = new_weight
@@ -117,7 +118,8 @@ class AppRunner:
             random.shuffle(employees)
             random.shuffle(constraints)
             employee_fresh = copy.deepcopy(employees)
-            algorithm_based_priority_queue.solve_mid_week(board_for_test, employee_fresh, constraints, False, self.get_all_rules())
+            algorithm_based_priority_queue.solve_mid_week(board_for_test, employee_fresh, constraints, False,
+                                                          self.get_all_rules())
 
             new_weight = board_weighter.weight_midweek(board_for_test)
             if new_weight < weight:
@@ -134,7 +136,6 @@ class AppRunner:
             constraints_cached, employees_cached = pickle.load(constraints_employees_file)
             return constraints_cached, employees_cached
 
-
     def cache_employee_weekend_constraints(self, constraints_to_cache, employees_to_cache):
         with open('constraints_employees_file', 'wb') as constraints_employees_file:
             pickle.dump((constraints_to_cache, employees_to_cache), constraints_employees_file)
@@ -149,18 +150,27 @@ class AppRunner:
             pickle.dump(constraints_to_cache, constraints_midweek_file)
 
 
-app_runner = AppRunner()
-if load_from_cache:
-    weekend_constraints, employees = app_runner.load_constraints_weekend_from_cache()
-else:
-    weekend_constraints, employees = app_runner.get_employees_and_their_constraints_for_weekend()
-    app_runner.cache_employee_weekend_constraints(weekend_constraints, employees)
-app_runner.run_algorithm_for_weekend(employees, weekend_constraints)
+def main(argv):
 
-if load_from_cache:
-    mid_week_constraints = app_runner.load_constraints_mid_week_from_cache()
-else:
-    mid_week_constraints, employees = app_runner.get_employees_and_their_constraints_for_midweek()
-    app_runner.cache_employee_mid_week_constraints(mid_week_constraints)
-app_runner.run_algorithm_for_midweek(employees, mid_week_constraints)
+    global MASTER_SHEET
 
+    MASTER_SHEET = argv[0]
+
+    app_runner = AppRunner()
+    if load_from_cache:
+        weekend_constraints, employees = app_runner.load_constraints_weekend_from_cache()
+    else:
+        weekend_constraints, employees = app_runner.get_employees_and_their_constraints_for_weekend()
+        app_runner.cache_employee_weekend_constraints(weekend_constraints, employees)
+    app_runner.run_algorithm_for_weekend(employees, weekend_constraints)
+
+    if load_from_cache:
+        mid_week_constraints = app_runner.load_constraints_mid_week_from_cache()
+    else:
+        mid_week_constraints, employees = app_runner.get_employees_and_their_constraints_for_midweek()
+        app_runner.cache_employee_mid_week_constraints(mid_week_constraints)
+    app_runner.run_algorithm_for_midweek(employees, mid_week_constraints)
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

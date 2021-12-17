@@ -124,7 +124,7 @@ class AlgorithmTest(TestCase):
         solve_weekend(board=board,
                       employees=employees,
                       weekend_demands=[],
-                      rules=[TwoMaleEmployeeDuringWeekend()],
+                      rules=[NoTwoMaleEmployeeDuringWeekend()],
                       priority_treatment={})
 
         solve_mid_week(board=board,
