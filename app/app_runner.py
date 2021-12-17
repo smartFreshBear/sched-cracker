@@ -67,10 +67,10 @@ class AppRunner:
     def get_all_rules(self):
         return [
                 CantDoShiftDayAfterAndBeforeWeekend(),
-                TwoMaleEmployeeDuringWeekend(),
+                NoTwoMaleEmployeeDuringWeekend(),
                 NoTwoNewInOneShift(),
                 CantWorkDayAfterNight(),
-                IfEmployeeDidShortHeWontDoItAgainOrWillNotDoNight(),
+                IfEmployeeDidShortHeWontDoItAgainOrWillNotDoLong(),
                 EmployeeCanDoShortOrLongInWeekendOnceAMonth(),
                 EmployeeCanDoFridayNightOrSaturdayNightOnceAMonth()
                 ]

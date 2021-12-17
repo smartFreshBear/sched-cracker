@@ -2,12 +2,17 @@ from enum import Enum, IntEnum
 
 
 class Employee:
-    def __init__(self, name, sex, new=False, priority=100):
+    def __init__(self, name, sex, new=False, priority=100, rule_override=None):
+
+        if rule_override is None:
+            rule_override = []
+
         self.name = name
         self.sex = sex
         self.isNew = new
         # Employee not suppose to be aware of priority
         self.priority = priority
+        self.rule_override = rule_override
 
     def __lt__(self, other):
         return other.priority < self.priority
