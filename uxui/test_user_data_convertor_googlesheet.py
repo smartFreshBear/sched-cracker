@@ -82,7 +82,13 @@ class TestUserDataConvertorGoogleSheetBased(TestCase):
 
 
 
+    def test_get_mid_week_double_shift(self):
+        user_data_convertor_googlesheet = UserDataConvertorGoogleSheetBased(SpreadsheetClient(sheet_id_for_test))
+        list_of_double_shift_request = user_data_convertor_googlesheet.get_double_shift_for_employee()
 
+        assert list_of_double_shift_request[0][0].text == 'True'
+        assert list_of_double_shift_request[1][0].text == 'False'
+        print(list_of_double_shift_request)
 
 
 

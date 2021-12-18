@@ -5,6 +5,7 @@ from uxui.uiobjects.Cell import Cell
 NAME_LOCATION_FROM = 'A8'
 NAME_LOCATION_TO = 'B10'
 RED_CELL = 'G5'
+DOUBLE_SHIFT_MID_WEEK_RANGE = 'J8:K31'
 
 
 class UserDataConvertorGoogleSheetBased:
@@ -113,3 +114,6 @@ class UserDataConvertorGoogleSheetBased:
     def get_employee_details(self):
         table = self.googleclient.load_cells_given_from_to(NAME_LOCATION_FROM, NAME_LOCATION_TO)
         return Employee(sex=table[2][1].text, name=table[0][1].text, new=table[1][1].text.lower() == 'yes')
+
+    def get_double_shift_for_employee(self):
+        return self.googleclient.load_constraints_given_pair(DOUBLE_SHIFT_MID_WEEK_RANGE)

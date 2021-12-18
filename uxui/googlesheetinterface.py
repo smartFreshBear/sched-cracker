@@ -67,7 +67,7 @@ class SpreadsheetClient:
             row_of_cells = list()
             for sheet_cell in row['values']:
                 entered_value = sheet_cell.get('userEnteredValue', None)
-                user_str = '' if entered_value is None else entered_value['stringValue']
+                user_str = '' if entered_value is None else str(list(entered_value.values())[0])
                 cell = Cell(color=sheet_cell['effectiveFormat']['backgroundColor'], text=user_str)
                 row_of_cells.append(cell)
             cell_table.append(row_of_cells)
