@@ -1,6 +1,7 @@
 from unittest import TestCase
 
 from objects.classes import *
+from rules import Rules
 from rules.Rules import *
 from ..algorithm_based_priority_queue import solve_weekend, solve_mid_week
 import copy
@@ -148,13 +149,28 @@ class AlgorithmTest(TestCase):
         result = CantDoShiftDayAfterAndBeforeWeekend().check(aviad, board, 0, 0, MidWeekShiftType.Night)
         assert result
 
-        board.weekendMapping[0].from_shift_to_employee[WeekendShiftsTypes.Friday] = aviad
+        board.weekendMapping[0].from_shift_to_employee[WeekendShiftsTypes.Short] = aviad
         result = CantDoShiftDayAfterAndBeforeWeekend().check(aviad, board, 1, 0, MidWeekShiftType.Night)
         assert not result
 
-        board.weekendMapping[2].from_shift_to_employee[WeekendShiftsTypes.Friday] = aviad
+        board.weekendMapping[2].from_shift_to_employee[WeekendShiftsTypes.Long] = aviad
         result = CantDoShiftDayAfterAndBeforeWeekend().check(aviad, board, 2, 4, MidWeekShiftType.Night)
         assert not result
+
+    def test_double_shift_extra_short(self):
+
+        employees, aviad, tania, almog, maniak, gandalf, frodo, mother_theresa = get_employess()
+        board = PlanningBoard()
+        aviad.rule_override = [IfEmployeeDidShortHeCantDoShort.get_id(), IfEmployeeDidLongHeCantDoShort.get_id()]
+        board.midWeekMapping[0][1].from_shift_to_employee[MidWeekShiftType.Short] = aviad
+        result = Rules.check_for_list_of_rules(aviad, board, 0, 3, MidWeekShiftType.Short, Rules.get_all_rules())
+        assert result
+
+        aviad.rule_override = []
+        board.midWeekMapping[0][1].from_shift_to_employee[MidWeekShiftType.Short] = aviad
+        result = Rules.check_for_list_of_rules(aviad, board, 0, 3, MidWeekShiftType.Short, Rules.get_all_rules())
+        assert not result
+
 
     def test_during_weekend_live_empty_in_case_no_one_can_feature(self):
         _, aviad, tania, almog, _, _, _, _ = get_employess()
