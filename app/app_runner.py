@@ -65,15 +65,9 @@ class AppRunner:
         return constraints, employees
 
     def get_all_rules(self):
-        return [
-            CantDoShiftDayAfterAndBeforeWeekend(),
-            NoTwoMaleEmployeeDuringWeekend(),
-            NoTwoNewInOneShift(),
-            CantWorkDayAfterNight(),
-            IfEmployeeDidShortHeWontDoItAgainOrWillNotDoLong(),
-            EmployeeCanDoShortOrLongInWeekendOnceAMonth(),
-            EmployeeCanDoFridayNightOrSaturdayNightOnceAMonth()
-        ]
+        # TODO later on should be more sophisticated
+        return Rules.get_all_rules()
+
 
     def get_result_sheet_convertor(self):
         result_sheet_id = self.get_result_sheet()
@@ -108,7 +102,7 @@ class AppRunner:
     def run_algorithm_for_midweek(self, employees, constraints):
         weight = 99999
         chosen_board = self.board
-        for i in range(10000):
+        for i in range(4000):
             if weight == 0:
                 break
 

@@ -1,10 +1,9 @@
 import copy
+import heapq
 import random
-from functools import reduce
 
 from objects.classes import *
-import heapq
-
+from rules import Rules
 
 from_shift_to_weight = {
     MidWeekShiftType.Short: 50,
@@ -31,9 +30,8 @@ def get_relevant_employees_for_mid_week_shift(week_index, day_index, employees, 
 
 
 def does_all_rule_applied(rules, employee, board, week, day, shift) -> bool:
-    if employee is None:
-        return False
-    return reduce(lambda a, b: a and b, [result.check(employee, board, week, day, shift) for result in rules], True)
+    return Rules.check_for_list_of_rules(employee, board, week, day, shift, rules)
+
 
 
 # try to merge the two functions

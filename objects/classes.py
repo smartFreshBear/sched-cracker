@@ -36,7 +36,7 @@ class DaysOfWeek(IntEnum):
     Wednesday = 4,
     Thursday = 5,
 
-    def from_int_zero(index: int):
+    def from_int_to_day_zero_based(index: int):
         return {
             0: DaysOfWeek.Sunday,
             1: DaysOfWeek.Monday,
@@ -139,7 +139,7 @@ class EmployeeConstraintsForWeekDays:
 
     def get_constraints_for_shift(self, week: int, day: int):
         constraint_for_day_in_week = self.from_day_to_constraint.get((WeekOfTheMonth.from_int_zero(index=week),
-                                                                      DaysOfWeek.from_int_zero(index=day)), [])
+                                                                      DaysOfWeek.from_int_to_day_zero_based(index=day)), [])
         if MidWeekShiftType.All in constraint_for_day_in_week:
             return MidWeekShiftType.get_literally_all()
         return constraint_for_day_in_week
@@ -193,4 +193,8 @@ class PlanningBoard:
 class Rule:
     def check(self, employee: Employee, board: PlanningBoard, week: int = None, day: int = None,
               shift: ShiftTypes = None) -> bool:
+        pass
+
+    @staticmethod
+    def get_id() -> int:
         pass

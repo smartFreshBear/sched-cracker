@@ -105,7 +105,7 @@ class UserDataConvertorGoogleSheetBased:
 
     @staticmethod
     def handle_constraints(day, employee_constraints, shift, week):
-        hashing = (week, DaysOfWeek.from_int_zero(day))
+        hashing = (week, DaysOfWeek.from_int_to_day_zero_based(day))
         if hashing not in employee_constraints.from_day_to_constraint:
             employee_constraints.from_day_to_constraint[hashing] = []
         employee_constraints.from_day_to_constraint[hashing].append(MidWeekShiftType(shift))
