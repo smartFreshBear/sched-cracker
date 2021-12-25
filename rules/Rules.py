@@ -1,6 +1,6 @@
 from functools import reduce
 
-from objects.classes import Rule, DaysOfWeek, WeekendShiftsTypes, MidWeekShiftType
+from objects.Classes import Rule, DaysOfWeek, WeekendShiftsTypes, MidWeekShiftType
 
 
 def get_overlapping_employees_with_shift(board, week, day, shift):
@@ -286,7 +286,15 @@ class EmployeeCanDoFridayNightOrSaturdayNightOnceAMonth(Rule):
 def check_for_list_of_rules(employee, board, week=None, day=None, shift=None, list_of_rules=None):
     if employee is None:
         return False
-    filtered_rules = [rule for rule in list_of_rules if rule.get_id() not in employee.rule_override]
+
+    rules_to_override_mappings = employee.mid_week_rule_override.weeks_to_rules_mappings
+
+    list_of_rules_id_list = [rule_id for rule_id in rules_to_override_mappings.get(week, {}).values()] \
+        if rules_to_override_mappings is not None else []
+
+    all_rules_id_to_ignore = [rule_id for list_of_rules in list_of_rules_id_list for rule_id in list_of_rules]
+
+    filtered_rules = [rule for rule in list_of_rules if rule.get_id() not in all_rules_id_to_ignore]
     all_rules_are_valid = reduce(lambda a, b: a and b, [rule.check(employee, board, week, day, shift) for
                                                         rule in filtered_rules], True)
     return all_rules_are_valid
@@ -307,3 +315,11 @@ def get_all_rules():
         EmployeeCanDoShortOrLongInWeekendOnceAMonth(),
         EmployeeCanDoFridayNightOrSaturdayNightOnceAMonth()
     ]
+
+
+from_double_shift_request_to_list_of_rules = {
+    MidWeekShiftType.Short: [IfEmployeeDidShortHeCantDoShort.get_id(), IfEmployeeDidLongHeCantDoShort.get_id()],
+    MidWeekShiftType.Long: [IfEmployeeDidLongHeCantLong.get_id(), IfEmployeeDidNightHeCantDoLong.get_id()],
+    MidWeekShiftType.Night: [IfEmployeeDidLongHeCantNight.get_id(), IfEmployeeDidNightHeCantDoMoreNight.get_id()]
+
+}

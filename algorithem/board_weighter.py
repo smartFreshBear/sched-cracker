@@ -1,4 +1,4 @@
-from objects.classes import *
+from objects.Classes import *
 
 
 class board_weighter:

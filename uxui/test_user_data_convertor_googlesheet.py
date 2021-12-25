@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from objects.classes import *
+from objects.Classes import *
 from uxui.googlesheetinterface import SpreadsheetClient
 from uxui.user_data_convertor_googlesheet import UserDataConvertorGoogleSheetBased
 
@@ -13,7 +13,7 @@ class TestUserDataConvertorGoogleSheetBased(TestCase):
         user_data_convertor_googlesheet = UserDataConvertorGoogleSheetBased(SpreadsheetClient(sheet_id_for_test))
         details = user_data_convertor_googlesheet.get_employee_details()
         assert details.name == 'Aviad Shalom'
-        assert details.isNew == 'Yes'
+        assert details.isNew == True
         assert details.sex == 'male'
 
     def test_get_constraints_for_user_given_mid_week(self):
@@ -86,9 +86,28 @@ class TestUserDataConvertorGoogleSheetBased(TestCase):
         user_data_convertor_googlesheet = UserDataConvertorGoogleSheetBased(SpreadsheetClient(sheet_id_for_test))
         list_of_double_shift_request = user_data_convertor_googlesheet.get_double_shift_for_employee()
 
-        assert list_of_double_shift_request[0][0].text == 'True'
-        assert list_of_double_shift_request[1][0].text == 'False'
+        assert list_of_double_shift_request[1][0].text == 'True'
+        assert list_of_double_shift_request[2][0].text == 'False'
         print(list_of_double_shift_request)
+
+
+    def test_get_employee_with_rules_override(self):
+        user_data_convertor_googlesheet = UserDataConvertorGoogleSheetBased(SpreadsheetClient(sheet_id_for_test))
+        employee = user_data_convertor_googlesheet.get_employee_details()
+
+        assert employee.mid_week_rule_override is not None
+        assert len(employee.mid_week_rule_override.weeks_to_rules_mappings[0][0]) > 0
+        assert len(employee.mid_week_rule_override.weeks_to_rules_mappings[0][2]) > 0
+        assert len(employee.mid_week_rule_override.weeks_to_rules_mappings[3][1]) > 0
+
+
+
+
+
+
+
+
+
 
 
 
