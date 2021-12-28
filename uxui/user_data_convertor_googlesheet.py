@@ -1,10 +1,14 @@
-from objects.classes import WeekOfTheMonth, DaysOfWeek, Employee, EmployeeConstraintsForWeekDays, \
-    MidWeekShiftType, EmployeeConstraintsForWeekends, WeekendShiftsTypes, PlanningBoard
+from rules.Rules import from_double_shift_request_to_list_of_rules
+from objects.Classes import WeekOfTheMonth, DaysOfWeek, EmployeeConstraintsForWeekDays, \
+    MidWeekShiftType, EmployeeConstraintsForWeekends, WeekendShiftsTypes, PlanningBoard, Employee, \
+    EmployeeDoubleShiftRequirement
+
 from uxui.uiobjects.Cell import Cell
 
 NAME_LOCATION_FROM = 'A8'
 NAME_LOCATION_TO = 'B10'
-RED_CELL = 'G5'
+RED_CELL = 'J5'
+DOUBLE_SHIFT_MID_WEEK_RANGE = 'J7:K31'
 
 
 class UserDataConvertorGoogleSheetBased:
@@ -14,15 +18,15 @@ class UserDataConvertorGoogleSheetBased:
 
     @staticmethod
     def get_from_cell_midweek_number_given_week(week):
-        return 'E' + str(8 + (week.value - 1) * 5)
+        return 'E' + str(8 + (week.value * 5))
 
     @staticmethod
     def get_to_midweek_cell_number_given_week(week):
-        return 'I' + str(10 + (week.value - 1) * 5)
+        return 'I' + str(10 + (week.value * 5))
 
     @staticmethod
     def get_weekend_cells_given_week(week):
-        off_set = week - 1
+        off_set = week
         return \
             {
                 WeekendShiftsTypes.Short: 'N{0}:Q{0}'.format(str(off_set * 5 + 8)),
@@ -31,7 +35,8 @@ class UserDataConvertorGoogleSheetBased:
                 WeekendShiftsTypes.Saturday: 'Q{0}:R{0}'.format(str(off_set * 5 + 11))
             }
 
-    def get_constraint_for_midweek(self, week: WeekOfTheMonth, employee_constraints: EmployeeConstraintsForWeekDays = None):
+    def get_constraint_for_midweek(self, week: WeekOfTheMonth,
+                                   employee_constraints: EmployeeConstraintsForWeekDays = None):
         if employee_constraints is None:
             employee_details = self.get_employee_details()
             employee_constraints = EmployeeConstraintsForWeekDays(employee=employee_details,
@@ -53,7 +58,7 @@ class UserDataConvertorGoogleSheetBased:
 
         to_cell = self.get_to_midweek_cell_number_given_week(week)
         from_cell = self.get_from_cell_midweek_number_given_week(week)
-        days_of_week = board.midWeekMapping[week.value - 1]
+        days_of_week = board.midWeekMapping[week.value]
 
         table_to_write = []
         for shift in MidWeekShiftType.get_literally_all():
@@ -66,7 +71,8 @@ class UserDataConvertorGoogleSheetBased:
         self.googleclient.update_cells_given_from_to_and_cells(from_cell, to_cell, table_to_write)
         return True
 
-    def get_constraint_for_weekend(self, week: WeekOfTheMonth, employee_constraints: EmployeeConstraintsForWeekends = None):
+    def get_constraint_for_weekend(self, week: WeekOfTheMonth,
+                                   employee_constraints: EmployeeConstraintsForWeekends = None):
         if employee_constraints is None:
             employee_details = self.get_employee_details()
             employee_constraints = EmployeeConstraintsForWeekends(employee=employee_details,
@@ -95,7 +101,8 @@ class UserDataConvertorGoogleSheetBased:
             employee_in_shift = weekend_shift.from_shift_to_employee[key]
             cell_to_write = Cell() if employee_in_shift is None else Cell(text=employee_in_shift.name)
 
-            self.googleclient.update_cells_given_from_to_and_cells(value.split(':')[0], value.split(':')[1], [[cell_to_write]])
+            self.googleclient.update_cells_given_from_to_and_cells(value.split(':')[0], value.split(':')[1],
+                                                                   [[cell_to_write]])
 
         return True
 
@@ -111,5 +118,33 @@ class UserDataConvertorGoogleSheetBased:
         employee_constraints.from_day_to_constraint[hashing].append(MidWeekShiftType(shift))
 
     def get_employee_details(self):
+        employee_double_shift_req = EmployeeDoubleShiftRequirement()
+        self.handle_mid_week_double_shift(employee_double_shift_req)
+
         table = self.googleclient.load_cells_given_from_to(NAME_LOCATION_FROM, NAME_LOCATION_TO)
-        return Employee(sex=table[2][1].text, name=table[0][1].text, new=table[1][1].text.lower() == 'yes')
+        return Employee(sex=table[2][1].text,
+                        name=table[0][1].text,
+                        new=table[1][1].text.lower() == 'yes',
+                        mid_week_rule_override=employee_double_shift_req)
+
+    def handle_mid_week_double_shift(self, employee_double_shift_req):
+
+        week_rows_amount_in_ui = len(MidWeekShiftType.get_literally_all()) + 2
+        for week_index, double_for_week in enumerate(self.batchify(self.get_double_shift_for_employee(),
+                                                                   week_rows_amount_in_ui)):
+            for shift_index, double_shift_cells in enumerate(double_for_week[1:4]):
+                if double_shift_cells[0].text == 'True':
+                    if week_index not in employee_double_shift_req.weeks_to_rules_mappings:
+                        employee_double_shift_req.weeks_to_rules_mappings[week_index] = {}
+                    employee_double_shift_req.weeks_to_rules_mappings[week_index][shift_index] = \
+                        from_double_shift_request_to_list_of_rules[MidWeekShiftType(shift_index)]
+
+
+    def get_double_shift_for_employee(self):
+        return self.googleclient.load_constraints_given_pair(DOUBLE_SHIFT_MID_WEEK_RANGE)
+
+    @staticmethod
+    def batchify(iterable, batch_size=1):
+        length_of_iterable = len(iterable)
+        for ndx in range(0, length_of_iterable, batch_size):
+            yield iterable[ndx:ndx + batch_size]

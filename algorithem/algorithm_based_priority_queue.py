@@ -2,7 +2,7 @@ import copy
 import heapq
 import random
 
-from objects.classes import *
+from objects.Classes import *
 from rules import Rules
 
 from_shift_to_weight = {

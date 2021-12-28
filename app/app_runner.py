@@ -10,7 +10,11 @@ from rules.Rules import *
 from uxui.googlesheetinterface import SpreadsheetClient
 from uxui.user_data_convertor_googlesheet import UserDataConvertorGoogleSheetBased
 
-load_from_cache = False
+load_from_cache = True
+
+RESULT_SHEET_LOCATION = 'I1:I1'
+EMPLOYEE_SHEET_ID_LOCATION = 'B2:B100'
+RULES_LOCATION = 'D2:F21'
 
 
 class AppRunner:
@@ -21,13 +25,13 @@ class AppRunner:
     @staticmethod
     def get_all_employee_ids():
         master_sheet_client = SpreadsheetClient(MASTER_SHEET)
-        employees_sheet_ids = master_sheet_client.load_cells_given_from_to('B2', 'B100')
+        employees_sheet_ids = master_sheet_client.load_constraints_given_pair(EMPLOYEE_SHEET_ID_LOCATION)
         return [cell.text for single_row in employees_sheet_ids for cell in single_row if cell.text != '']
 
     @staticmethod
     def get_result_sheet():
         master_sheet_client = SpreadsheetClient(MASTER_SHEET)
-        result_table = master_sheet_client.load_constraints_given_pair('E1:E1')
+        result_table = master_sheet_client.load_constraints_given_pair(RESULT_SHEET_LOCATION)
         return result_table[0][0].text
 
     def get_employees_and_their_constraints_for_weekend(self):
@@ -65,8 +69,10 @@ class AppRunner:
         return constraints, employees
 
     def get_all_rules(self):
-        # TODO later on should be more sophisticated
-        return Rules.get_all_rules()
+        rules_info = SpreadsheetClient(MASTER_SHEET).load_constraints_given_pair(RULES_LOCATION)
+        disabled_rules = [int(rule[0].text) for rule in rules_info if rule[2].text == 'False']
+        return [rule for rule in Rules.get_all_rules() if rule.get_id() not in disabled_rules]
+
 
 
     def get_result_sheet_convertor(self):
@@ -107,7 +113,6 @@ class AppRunner:
                 break
 
             board_for_test = copy.deepcopy(self.board)
-            # employees.insert(0, employees.pop())
             random.shuffle(employees)
             random.shuffle(employees)
             random.shuffle(constraints)
@@ -143,28 +148,26 @@ class AppRunner:
         with open('constraints_midweek_file', 'wb') as constraints_midweek_file:
             pickle.dump(constraints_to_cache, constraints_midweek_file)
 
+    @staticmethod
+    def trigger_flow(master_sheet_id):
+        global MASTER_SHEET
+        MASTER_SHEET = master_sheet_id
+        app_runner = AppRunner()
+        if load_from_cache:
+            weekend_constraints, employees = app_runner.load_constraints_weekend_from_cache()
+        else:
+            weekend_constraints, employees = app_runner.get_employees_and_their_constraints_for_weekend()
+            app_runner.cache_employee_weekend_constraints(weekend_constraints, employees)
+        app_runner.run_algorithm_for_weekend(employees, weekend_constraints)
+        if load_from_cache:
+            mid_week_constraints = app_runner.load_constraints_mid_week_from_cache()
+        else:
+            mid_week_constraints, employees = app_runner.get_employees_and_their_constraints_for_midweek()
+            app_runner.cache_employee_mid_week_constraints(mid_week_constraints)
+        app_runner.run_algorithm_for_midweek(employees, mid_week_constraints)
 
-def main(argv):
-
-    global MASTER_SHEET
-
-    MASTER_SHEET = argv[0]
-
-    app_runner = AppRunner()
-    if load_from_cache:
-        weekend_constraints, employees = app_runner.load_constraints_weekend_from_cache()
-    else:
-        weekend_constraints, employees = app_runner.get_employees_and_their_constraints_for_weekend()
-        app_runner.cache_employee_weekend_constraints(weekend_constraints, employees)
-    app_runner.run_algorithm_for_weekend(employees, weekend_constraints)
-
-    if load_from_cache:
-        mid_week_constraints = app_runner.load_constraints_mid_week_from_cache()
-    else:
-        mid_week_constraints, employees = app_runner.get_employees_and_their_constraints_for_midweek()
-        app_runner.cache_employee_mid_week_constraints(mid_week_constraints)
-    app_runner.run_algorithm_for_midweek(employees, mid_week_constraints)
-
-
-if __name__ == "__main__":
-    main(sys.argv[1:])
+# def main(argv):
+#     AppRunner.trigger_flow(argv[0])
+#
+# if __name__ == "__main__":
+#     main(sys.argv[1:])

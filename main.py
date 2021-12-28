@@ -1,16 +1,28 @@
-# This is a sample Python script.
+import sys
 
-# Press ⌃R to execute it or replace it with your code.
-# Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
-
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press ⌘F8 to toggle the breakpoint.
+import gevent
+from flask import Flask
+from flask import request
+from geventwebsocket.handler import WebSocketHandler
 
 
-# Press the green button in the gutter to run the script.
+from app.app_runner import AppRunner
+
+
+MASTER_SHEET_ID = sys.argv[1:][0]
+app = Flask(__name__)
+
+
+@app.route('/trigger_sched_solver/', methods=['POST'])
+def check_if_text_is_recipe():
+    if 'almog_tania_aviad_3981' != request.form['key']:
+        return 'key_was_not_provided'
+    else:
+        AppRunner.trigger_flow(MASTER_SHEET_ID)
+        return 'triggered the algorithm'
+
+
+
 if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    server = gevent.pywsgi.WSGIServer( (u'0.0.0.0', 5000), app, handler_class=WebSocketHandler )
+    server.serve_forever()
