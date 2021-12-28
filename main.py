@@ -24,5 +24,5 @@ def check_if_text_is_recipe():
 
 
 if __name__ == '__main__':
-    server = gevent.pywsgi.WSGIServer( (u'0.0.0.0', 5000), app, handler_class=WebSocketHandler )
+    server = gevent.pywsgi.WSGIServer( (u'0.0.0.0', 5300), app, handler_class=WebSocketHandler )
     server.serve_forever()
