@@ -148,28 +148,26 @@ class AppRunner:
         with open('constraints_midweek_file', 'wb') as constraints_midweek_file:
             pickle.dump(constraints_to_cache, constraints_midweek_file)
 
+    @staticmethod
+    def trigger_flow(master_sheet_id):
+        global MASTER_SHEET
+        MASTER_SHEET = master_sheet_id
+        app_runner = AppRunner()
+        if load_from_cache:
+            weekend_constraints, employees = app_runner.load_constraints_weekend_from_cache()
+        else:
+            weekend_constraints, employees = app_runner.get_employees_and_their_constraints_for_weekend()
+            app_runner.cache_employee_weekend_constraints(weekend_constraints, employees)
+        app_runner.run_algorithm_for_weekend(employees, weekend_constraints)
+        if load_from_cache:
+            mid_week_constraints = app_runner.load_constraints_mid_week_from_cache()
+        else:
+            mid_week_constraints, employees = app_runner.get_employees_and_their_constraints_for_midweek()
+            app_runner.cache_employee_mid_week_constraints(mid_week_constraints)
+        app_runner.run_algorithm_for_midweek(employees, mid_week_constraints)
 
-def main(argv):
-
-    global MASTER_SHEET
-
-    MASTER_SHEET = argv[0]
-
-    app_runner = AppRunner()
-    if load_from_cache:
-        weekend_constraints, employees = app_runner.load_constraints_weekend_from_cache()
-    else:
-        weekend_constraints, employees = app_runner.get_employees_and_their_constraints_for_weekend()
-        app_runner.cache_employee_weekend_constraints(weekend_constraints, employees)
-    app_runner.run_algorithm_for_weekend(employees, weekend_constraints)
-
-    if load_from_cache:
-        mid_week_constraints = app_runner.load_constraints_mid_week_from_cache()
-    else:
-        mid_week_constraints, employees = app_runner.get_employees_and_their_constraints_for_midweek()
-        app_runner.cache_employee_mid_week_constraints(mid_week_constraints)
-    app_runner.run_algorithm_for_midweek(employees, mid_week_constraints)
-
-
-if __name__ == "__main__":
-    main(sys.argv[1:])
+# def main(argv):
+#     AppRunner.trigger_flow(argv[0])
+#
+# if __name__ == "__main__":
+#     main(sys.argv[1:])
