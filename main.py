@@ -6,10 +6,7 @@ from flask import request
 from geventwebsocket.handler import WebSocketHandler
 import logging
 
-
-
 from app.app_runner import AppRunner
-
 
 MASTER_SHEET_ID = sys.argv[1:][0]
 app = Flask(__name__)
@@ -24,8 +21,11 @@ def check_if_text_is_recipe():
         return 'triggered the algorithm'
 
 
+# if __name__ == '__main__':
+#     server = gevent.pywsgi.WSGIServer( (u'0.0.0.0', 5300), app, handler_class=WebSocketHandler)
+#     logging.info("server is up and running")
+#     server.serve_forever()
+
 
 if __name__ == '__main__':
-    server = gevent.pywsgi.WSGIServer( (u'0.0.0.0', 5300), app, handler_class=WebSocketHandler )
-    logging.info("server is up and running")
-    server.serve_forever()
+    app.run(host='0.0.0.0', port=5042, debug=False)
