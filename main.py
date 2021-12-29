@@ -4,6 +4,8 @@ import gevent
 from flask import Flask
 from flask import request
 from geventwebsocket.handler import WebSocketHandler
+import logging
+
 
 
 from app.app_runner import AppRunner
@@ -25,4 +27,5 @@ def check_if_text_is_recipe():
 
 if __name__ == '__main__':
     server = gevent.pywsgi.WSGIServer( (u'0.0.0.0', 5300), app, handler_class=WebSocketHandler )
+    logging.info("server is up and running")
     server.serve_forever()
