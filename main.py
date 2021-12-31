@@ -1,3 +1,4 @@
+import logging
 import sys
 
 import gevent
@@ -18,6 +19,7 @@ def trigger_algorithm():
         return 'key_was_not_provided'
     else:
         if len(list_of_app_runner) == 0:
+            logging.info("preparation for running algo")
             app_runner = AppRunner()
             thread = Thread(target=AppRunner.trigger_flow, args=(MASTER_SHEET_ID, app_runner, ))
             thread.start()
@@ -38,11 +40,11 @@ def stop_algorithm():
         return 'stopped algorithm'
 
 
-# if __name__ == '__main__':
-#     server = gevent.pywsgi.WSGIServer( (u'0.0.0.0', 5042), app, handler_class=WebSocketHandler)
-#     logging.info("server is up and running")
-#     server.serve_forever()
-
-
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5042, debug=False)
+    server = gevent.pywsgi.WSGIServer( (u'0.0.0.0', 5042), app, handler_class=WebSocketHandler)
+    logging.info("server is up and running")
+    server.serve_forever()
+
+
+# if __name__ == '__main__':
+#     app.run(host='0.0.0.0', port=5042, debug=False)

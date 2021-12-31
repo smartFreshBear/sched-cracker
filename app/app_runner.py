@@ -1,13 +1,10 @@
+import logging
 import pickle
-import random
-import sys
-import threading
 import time
 
 from algorithem import algorithm_based_priority_queue
 from algorithem.algorithm_based_priority_queue import *
 from algorithem.board_weighter import board_weighter
-from rules.Rules import *
 from uxui.googlesheetinterface import SpreadsheetClient
 from uxui.user_data_convertor_googlesheet import UserDataConvertorGoogleSheetBased
 
@@ -15,13 +12,8 @@ load_from_cache = False
 
 RESULT_SHEET_LOCATION = 'I1:I1'
 EMPLOYEE_SHEET_ID_LOCATION = 'B2:B100'
-RULES_LOCATION = 'D2:F21'
-# global should_close_thread
-# should_close_thread = False
-#
-# def should_stop():
-#     if should_close_thread:
-#         sys.exit()
+
+
 class AppRunner:
 
     def __init__(self):
@@ -52,7 +44,7 @@ class AppRunner:
             for weekend in WeekOfTheMonth:
                 self.kill_process_if_needed()
                 # need to enforce less calling to api
-                print("weekend-flow: getting constraints for employee {} week {}".format(employee.name, weekend))
+                logging.info("weekend-flow: getting constraints for employee {} week {}".format(employee.name, weekend))
                 time.sleep(3)
                 data_convertor.get_constraint_for_weekend(weekend, weekend_constraints)
             constraints.append(weekend_constraints)
@@ -70,7 +62,7 @@ class AppRunner:
             midweek_constraints = EmployeeConstraintsForWeekDays(from_day_to_constraint={}, employee=employee)
             for week in WeekOfTheMonth:
                 # need to enforce less calls to api
-                print("mid-week-flow: getting constraints for employee {} week {}".format(employee.name, week))
+                logging.info("mid-week-flow: getting constraints for employee {} week {}".format(employee.name, week))
                 time.sleep(3)
                 self.kill_process_if_needed()
                 data_convertor.get_constraint_for_midweek(week, midweek_constraints)
@@ -98,7 +90,6 @@ class AppRunner:
             if weight == 0:
                 break
             board_for_test = copy.deepcopy(self.board)
-            # employees.insert(0, employees.pop())
             random.shuffle(employees)
             random.shuffle(constraints)
             employee_fresh = copy.deepcopy(employees)
@@ -125,7 +116,6 @@ class AppRunner:
                 break
 
             board_for_test = copy.deepcopy(self.board)
-            random.shuffle(employees)
             random.shuffle(employees)
             random.shuffle(constraints)
             employee_fresh = copy.deepcopy(employees)
@@ -166,9 +156,14 @@ class AppRunner:
 
         MASTER_SHEET = master_sheet_id
         app_runner = app_runner
+
         if load_from_cache:
+            logging.info("loading constraints from cache")
+
             weekend_constraints, employees = app_runner.load_constraints_weekend_from_cache()
         else:
+            logging.info("loading constraints from cache sheets")
+
             weekend_constraints, employees = app_runner.get_employees_and_their_constraints_for_weekend()
             app_runner.cache_employee_weekend_constraints(weekend_constraints, employees)
         app_runner.run_algorithm_for_weekend(employees, weekend_constraints)
@@ -182,9 +177,3 @@ class AppRunner:
     def kill_process_if_needed(self):
         if self.kill_process:
             raise Exception("stop for user request")
-
-# def main(argv):
-#     AppRunner.trigger_flow(argv[0])
-#
-# if __name__ == "__main__":
-#     main(sys.argv[1:])
