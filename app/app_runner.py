@@ -8,6 +8,8 @@ from algorithem.board_weighter import board_weighter
 from uxui.googlesheetinterface import SpreadsheetClient
 from uxui.user_data_convertor_googlesheet import UserDataConvertorGoogleSheetBased
 
+logging.basicConfig(level=logging.INFO)
+
 load_from_cache = False
 
 RESULT_SHEET_LOCATION = 'I1:I1'
