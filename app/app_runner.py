@@ -14,6 +14,7 @@ load_from_cache = False
 
 RESULT_SHEET_LOCATION = 'I1:I1'
 EMPLOYEE_SHEET_ID_LOCATION = 'B2:B100'
+RULES_LOCATION = 'D2:F17'
 
 
 class AppRunner:
@@ -25,13 +26,13 @@ class AppRunner:
     @staticmethod
     def get_all_employee_ids():
         master_sheet_client = SpreadsheetClient(MASTER_SHEET)
-        employees_sheet_ids = master_sheet_client.load_constraints_given_pair(EMPLOYEE_SHEET_ID_LOCATION)
+        employees_sheet_ids = master_sheet_client.load_cells_given_pair(EMPLOYEE_SHEET_ID_LOCATION)
         return [cell.text for single_row in employees_sheet_ids for cell in single_row if cell.text != '']
 
     @staticmethod
     def get_result_sheet():
         master_sheet_client = SpreadsheetClient(MASTER_SHEET)
-        result_table = master_sheet_client.load_constraints_given_pair(RESULT_SHEET_LOCATION)
+        result_table = master_sheet_client.load_cells_given_pair(RESULT_SHEET_LOCATION)
         return result_table[0][0].text
 
     def get_employees_and_their_constraints_for_weekend(self):
@@ -47,7 +48,7 @@ class AppRunner:
                 self.kill_process_if_needed()
                 # need to enforce less calling to api
                 logging.info("weekend-flow: getting constraints for employee {} week {}".format(employee.name, weekend))
-                time.sleep(3)
+                time.sleep(5)
                 data_convertor.get_constraint_for_weekend(weekend, weekend_constraints)
             constraints.append(weekend_constraints)
             time.sleep(4)
@@ -65,7 +66,7 @@ class AppRunner:
             for week in WeekOfTheMonth:
                 # need to enforce less calls to api
                 logging.info("mid-week-flow: getting constraints for employee {} week {}".format(employee.name, week))
-                time.sleep(3)
+                time.sleep(5)
                 self.kill_process_if_needed()
                 data_convertor.get_constraint_for_midweek(week, midweek_constraints)
             constraints.append(midweek_constraints)
@@ -73,7 +74,7 @@ class AppRunner:
         return constraints, employees
 
     def get_all_rules(self):
-        rules_info = SpreadsheetClient(MASTER_SHEET).load_constraints_given_pair(RULES_LOCATION)
+        rules_info = SpreadsheetClient(MASTER_SHEET).load_cells_given_pair(RULES_LOCATION)
         disabled_rules = [int(rule[0].text) for rule in rules_info if rule[2].text == 'False']
         return [rule for rule in Rules.get_all_rules() if rule.get_id() not in disabled_rules]
 

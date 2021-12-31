@@ -83,7 +83,7 @@ class UserDataConvertorGoogleSheetBased:
         from_weekend_to_relevant_cells = self.get_weekend_cells_given_week(week)
 
         for key, value in from_weekend_to_relevant_cells.items():
-            weekend_cell = self.googleclient.load_constraints_given_pair(value)[0][0]
+            weekend_cell = self.googleclient.load_cells_given_pair(value)[0][0]
             if weekend_cell.color == red_cell.color:
                 if week not in employee_constraints.from_day_to_constraint:
                     employee_constraints.from_day_to_constraint[week] = []
@@ -141,7 +141,7 @@ class UserDataConvertorGoogleSheetBased:
 
 
     def get_double_shift_for_employee(self):
-        return self.googleclient.load_constraints_given_pair(DOUBLE_SHIFT_MID_WEEK_RANGE)
+        return self.googleclient.load_cells_given_pair(DOUBLE_SHIFT_MID_WEEK_RANGE)
 
     @staticmethod
     def batchify(iterable, batch_size=1):
