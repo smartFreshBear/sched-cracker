@@ -50,7 +50,7 @@ class SpreadsheetClient:
         self.spreadsheet_service = self.get_spreadsheetservice()
         self.sheet_id = sheet_id
 
-    def load_constraints_given_pair(self, pair_str):
+    def load_cells_given_pair(self, pair_str):
         splitted_to_cells = pair_str.split(':')
         return self.load_cells_given_from_to(splitted_to_cells[0], splitted_to_cells[1])
 
