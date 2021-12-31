@@ -6,6 +6,8 @@ from flask import Flask
 from flask import request
 from geventwebsocket.handler import WebSocketHandler
 from threading import Thread
+logging.basicConfig(level=logging.INFO)
+
 
 from app.app_runner import AppRunner
 
