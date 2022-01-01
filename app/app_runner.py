@@ -70,7 +70,7 @@ class AppRunner:
                 self.kill_process_if_needed()
                 data_convertor.get_constraint_for_midweek(week, midweek_constraints)
             constraints.append(midweek_constraints)
-            time.sleep(4)
+            time.sleep(10)
         return constraints, employees
 
     def get_all_rules(self):
