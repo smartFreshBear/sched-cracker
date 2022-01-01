@@ -6,6 +6,7 @@ import pickle
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
+from googleapiclient.discovery_cache.base import Cache
 
 from uxui.uiobjects.Cell import *
 
@@ -19,7 +20,14 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
 # TODO remove and take as parameter
 SAMPLE_SPREADSHEET_ID = '1HMsTxrDeekNQRVNaTQT3xg3iksvzHVzQ_PCIx1xPsTE'
 
+class MemoryCache(Cache):
+    _CACHE = {}
 
+    def get(self, url):
+        return MemoryCache._CACHE.get(url)
+
+    def set(self, url, content):
+        MemoryCache._CACHE[url] = content
 
 class SpreadsheetClient:
 
@@ -43,7 +51,7 @@ class SpreadsheetClient:
             # Save the credentials for the next run
             with open('token.pickle', 'wb') as token:
                 pickle.dump(creds, token)
-        service = build('sheets', 'v4', credentials=creds)
+        service = build('sheets', 'v4', credentials=creds, cache= MemoryCache())
         return service
 
     def __init__(self, sheet_id):
