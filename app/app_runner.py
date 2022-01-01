@@ -1,3 +1,4 @@
+import gc
 import logging
 import pickle
 import time
@@ -48,10 +49,10 @@ class AppRunner:
                 self.kill_process_if_needed()
                 # need to enforce less calling to api
                 logging.info("weekend-flow: getting constraints for employee {} week {}".format(employee.name, weekend))
-                time.sleep(5)
+                time.sleep(6)
                 data_convertor.get_constraint_for_weekend(weekend, weekend_constraints)
             constraints.append(weekend_constraints)
-            time.sleep(4)
+            time.sleep(10)
         return constraints, employees
 
     def get_employees_and_their_constraints_for_midweek(self):
@@ -66,7 +67,7 @@ class AppRunner:
             for week in WeekOfTheMonth:
                 # need to enforce less calls to api
                 logging.info("mid-week-flow: getting constraints for employee {} week {}".format(employee.name, week))
-                time.sleep(5)
+                time.sleep(6)
                 self.kill_process_if_needed()
                 data_convertor.get_constraint_for_midweek(week, midweek_constraints)
             constraints.append(midweek_constraints)
@@ -103,6 +104,10 @@ class AppRunner:
             if new_weight < weight:
                 weight = new_weight
                 chosen_board = board_for_test
+            else:
+                del board_for_test
+                gc.collect()
+
 
         self.board = chosen_board
 
@@ -129,11 +134,15 @@ class AppRunner:
             if new_weight < weight:
                 weight = new_weight
                 chosen_board = board_for_test
+            else:
+                del board_for_test
+                gc.collect()
 
         self.board = chosen_board
         convertor = self.get_result_sheet_convertor()
         for week in WeekOfTheMonth:
             convertor.write_mid_week(week, self.board)
+        del self.board
 
     def load_constraints_weekend_from_cache(self):
         with open('constraints_employees_file', 'rb') as constraints_employees_file:
@@ -176,6 +185,9 @@ class AppRunner:
             mid_week_constraints, employees = app_runner.get_employees_and_their_constraints_for_midweek()
             app_runner.cache_employee_mid_week_constraints(mid_week_constraints)
         app_runner.run_algorithm_for_midweek(employees, mid_week_constraints)
+        del weekend_constraints, mid_week_constraints, employees
+        gc.collect()
+
 
     def kill_process_if_needed(self):
         if self.kill_process:
