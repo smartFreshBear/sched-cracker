@@ -11,7 +11,8 @@ from uxui.user_data_convertor_googlesheet import UserDataConvertorGoogleSheetBas
 
 logging.basicConfig(level=logging.INFO)
 
-load_from_cache = False
+LOAD_CONSTRAINTS_FROM_CACHE = False
+SHOULD_CACHE = False
 
 RESULT_SHEET_LOCATION = 'I1:I1'
 EMPLOYEE_SHEET_ID_LOCATION = 'B2:B100'
@@ -89,6 +90,7 @@ class AppRunner:
     def run_algorithm_for_weekend(self, employees, constraints):
         weight = 99999
         chosen_board = self.board
+        logging.info("weekend: going over on 6000 randomized options")
         for i in range(6000):
             self.kill_process_if_needed()
             if weight == 0:
@@ -108,7 +110,6 @@ class AppRunner:
                 del board_for_test
                 gc.collect()
 
-
         self.board = chosen_board
 
         convertor = self.get_result_sheet_convertor()
@@ -118,6 +119,7 @@ class AppRunner:
     def run_algorithm_for_midweek(self, employees, constraints):
         weight = 99999
         chosen_board = self.board
+        logging.info("midweek: going over on 4000 randomized options")
         for i in range(4000):
             self.kill_process_if_needed()
             if weight == 0:
@@ -142,7 +144,6 @@ class AppRunner:
         convertor = self.get_result_sheet_convertor()
         for week in WeekOfTheMonth:
             convertor.write_mid_week(week, self.board)
-        del self.board
 
     def load_constraints_weekend_from_cache(self):
         with open('constraints_employees_file', 'rb') as constraints_employees_file:
@@ -151,7 +152,9 @@ class AppRunner:
 
     def cache_employee_weekend_constraints(self, constraints_to_cache, employees_to_cache):
         with open('constraints_employees_file', 'wb') as constraints_employees_file:
-            pickle.dump((constraints_to_cache, employees_to_cache), constraints_employees_file)
+            logging.info("caching config is: {}".format(SHOULD_CACHE))
+            if SHOULD_CACHE:
+                pickle.dump((constraints_to_cache, employees_to_cache), constraints_employees_file)
 
     def load_constraints_mid_week_from_cache(self):
         with open('constraints_midweek_file', 'rb') as constraints_midweek_file:
@@ -160,7 +163,9 @@ class AppRunner:
 
     def cache_employee_mid_week_constraints(self, constraints_to_cache):
         with open('constraints_midweek_file', 'wb') as constraints_midweek_file:
-            pickle.dump(constraints_to_cache, constraints_midweek_file)
+            logging.info("caching config is: {}".format(SHOULD_CACHE))
+            if SHOULD_CACHE:
+                pickle.dump(constraints_to_cache, constraints_midweek_file)
 
     @staticmethod
     def trigger_flow(master_sheet_id, app_runner):
@@ -169,23 +174,24 @@ class AppRunner:
         MASTER_SHEET = master_sheet_id
         app_runner = app_runner
 
-        if load_from_cache:
+        if LOAD_CONSTRAINTS_FROM_CACHE:
             logging.info("loading constraints from cache")
-
             weekend_constraints, employees = app_runner.load_constraints_weekend_from_cache()
         else:
-            logging.info("loading constraints from cache sheets")
-
+            logging.info("loading weekend constraints from google sheets")
             weekend_constraints, employees = app_runner.get_employees_and_their_constraints_for_weekend()
             app_runner.cache_employee_weekend_constraints(weekend_constraints, employees)
         app_runner.run_algorithm_for_weekend(employees, weekend_constraints)
-        if load_from_cache:
+        del weekend_constraints
+        gc.collect()
+        if LOAD_CONSTRAINTS_FROM_CACHE:
             mid_week_constraints = app_runner.load_constraints_mid_week_from_cache()
         else:
+            logging.info("loading midweek constraints from google sheets")
             mid_week_constraints, employees = app_runner.get_employees_and_their_constraints_for_midweek()
             app_runner.cache_employee_mid_week_constraints(mid_week_constraints)
         app_runner.run_algorithm_for_midweek(employees, mid_week_constraints)
-        del weekend_constraints, mid_week_constraints, employees
+        del mid_week_constraints, employees
         gc.collect()
 
 
