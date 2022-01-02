@@ -114,6 +114,7 @@ class AppRunner:
 
         convertor = self.get_result_sheet_convertor()
         for weekend in WeekOfTheMonth:
+            time.sleep(6)
             convertor.write_weekend(weekend, self.board)
 
     def run_algorithm_for_midweek(self, employees, constraints):
@@ -143,6 +144,7 @@ class AppRunner:
         self.board = chosen_board
         convertor = self.get_result_sheet_convertor()
         for week in WeekOfTheMonth:
+            time.sleep(6)
             convertor.write_mid_week(week, self.board)
 
     def load_constraints_weekend_from_cache(self):
