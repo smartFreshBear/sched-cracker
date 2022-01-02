@@ -21,6 +21,7 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
 # TODO remove and take as parameter
 SAMPLE_SPREADSHEET_ID = '1HMsTxrDeekNQRVNaTQT3xg3iksvzHVzQ_PCIx1xPsTE'
 
+
 class MemoryCache(Cache):
     _CACHE = {}
 
@@ -30,14 +31,12 @@ class MemoryCache(Cache):
     def set(self, url, content):
         MemoryCache._CACHE[url] = content
 
+
 class SpreadsheetClient:
 
     @staticmethod
     def get_spreadsheetservice():
         creds = None
-        # The file token.pickle stores the user's access and refresh tokens, and is
-        # created automatically when the authorization flow completes for the first
-        # time.
         if os.path.exists('token.pickle'):
             with open('token.pickle', 'rb') as token:
                 creds = pickle.load(token)
@@ -52,11 +51,11 @@ class SpreadsheetClient:
             # Save the credentials for the next run
             with open('token.pickle', 'wb') as token:
                 pickle.dump(creds, token)
-        service = build('sheets', 'v4', credentials=creds, cache= MemoryCache())
+        service = build('sheets', 'v4', credentials=creds, cache=MemoryCache())
         return service
 
     def __init__(self, sheet_id):
-        self.spreadsheet_service = self.get_spreadsheetservice()
+        self.spreadsheet_service = self.get_spreadsheetservice().spreadsheets()
         self.sheet_id = sheet_id
 
     def load_cells_given_pair(self, pair_str):
@@ -65,7 +64,7 @@ class SpreadsheetClient:
 
     def load_cells_given_from_to(self, from_cell, to_cell) -> list[list[Cell]]:
         cell_range = '{}:{}'.format(from_cell, to_cell)
-        sheet = self.spreadsheet_service.spreadsheets()
+        sheet = self.spreadsheet_service
 
         result = sheet.get(spreadsheetId=self.sheet_id,
                            includeGridData=True,
@@ -82,7 +81,7 @@ class SpreadsheetClient:
                 row_of_cells.append(cell)
             cell_table.append(row_of_cells)
 
-        #cause its heavy as fuck
+        # cause its heavy as fuck
         del result
         gc.collect()
         return cell_table
@@ -98,11 +97,11 @@ class SpreadsheetClient:
             'values': rows
         }
 
-        request = self.spreadsheet_service.spreadsheets().values().append(spreadsheetId=self.sheet_id,
-                                                        range='{}:{}'.format(from_cell, to_cell),
-                                                        valueInputOption='RAW',
-                                                        insertDataOption='OVERWRITE',
-                                                        body=body)
+        request = self.spreadsheet_service.values().append(spreadsheetId=self.sheet_id,
+                                                           range='{}:{}'.format(from_cell, to_cell),
+                                                           valueInputOption='RAW',
+                                                           insertDataOption='OVERWRITE',
+                                                           body=body)
         response = request.execute()
 
         return response is not None
@@ -120,5 +119,3 @@ if __name__ == '__main__':
 
     worked = client.update_cells_given_from_to_and_cells('E13', 'I15', table)
     assert worked
-
-
