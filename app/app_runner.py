@@ -131,8 +131,9 @@ class AppRunner:
                 data_convertor.get_constraint_for_midweek(week, midweek_constraints)
             constraints.append(midweek_constraints)
             time.sleep(10)
-            self.loading_bar = +1
-            self.update_status_message(str((self.loading_bar/base)*100) + '%', 'mid-week')
+
+        self.loading_bar = self.loading_bar + 1
+        self.update_status_message(str((self.loading_bar/base)*100) + '%', 'mid-week')
         return constraints, employees
 
     def get_result_sheet_convertor(self):
@@ -231,7 +232,7 @@ class AppRunner:
         else:
             logging.info("loading midweek constraints from google sheets")
             mid_week_constraints, employees = app_runner.get_employees_and_their_constraints_for_midweek()
-            app_runner.cache_employee_mid_week_constraints(mid_week_constraints)
+            cache_employee_mid_week_constraints(mid_week_constraints)
         app_runner.run_algorithm_for_midweek(mid_week_constraints)
         del mid_week_constraints
         gc.collect()
