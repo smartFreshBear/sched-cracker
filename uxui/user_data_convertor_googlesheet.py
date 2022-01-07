@@ -122,10 +122,17 @@ class UserDataConvertorGoogleSheetBased:
         self.handle_mid_week_double_shift(employee_double_shift_req)
 
         table = self.googleclient.load_cells_given_from_to(NAME_LOCATION_FROM, NAME_LOCATION_TO)
-        return Employee(sex=table[2][1].text,
-                        name=table[0][1].text,
-                        new=table[1][1].text.lower() == 'yes',
-                        mid_week_rule_override=employee_double_shift_req)
+
+        employee = Employee(sex=table[2][1].text,
+                            name=table[0][1].text,
+                            new=table[1][1].text.lower() == 'yes',
+                            mid_week_rule_override=employee_double_shift_req)
+        if not employee.name:
+            raise Exception("you cant provide empty name in id {}".format(self.googleclient.sheet_id))
+
+        if not employee.sex:
+            raise Exception("you cant provide empty sex in sheet id {}".format(self.googleclient.sheet_id))
+        return employee
 
     def handle_mid_week_double_shift(self, employee_double_shift_req):
 
@@ -138,7 +145,6 @@ class UserDataConvertorGoogleSheetBased:
                         employee_double_shift_req.weeks_to_rules_mappings[week_index] = {}
                     employee_double_shift_req.weeks_to_rules_mappings[week_index][shift_index] = \
                         from_double_shift_request_to_list_of_rules[MidWeekShiftType(shift_index)]
-
 
     def get_double_shift_for_employee(self):
         return self.googleclient.load_cells_given_pair(DOUBLE_SHIFT_MID_WEEK_RANGE)

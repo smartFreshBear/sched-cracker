@@ -69,7 +69,8 @@ class AppRunner:
     def should_load_constraint_from_cached():
         master_sheet_client = SpreadsheetClient(MASTER_SHEET)
         global LOAD_CONSTRAINTS_FROM_CACHE
-        LOAD_CONSTRAINTS_FROM_CACHE = master_sheet_client.load_cells_given_pair(SHOULD_USE_CACHE_LOCATION)[0][0].text == 'True'
+        LOAD_CONSTRAINTS_FROM_CACHE = master_sheet_client.load_cells_given_pair(SHOULD_USE_CACHE_LOCATION)[0][
+                                          0].text == 'True'
 
     @staticmethod
     def get_all_employee_ids():
@@ -100,14 +101,13 @@ class AppRunner:
             weekend_constraints = EmployeeConstraintsForWeekends(from_weekend_to_constraints={}, employee=employee)
             for weekend in WeekOfTheMonth:
                 self.kill_process_if_needed()
-                # need to enforce less calling to api
                 logging.info("weekend-flow: getting constraints for employee {} week {}".format(employee.name, weekend))
                 time.sleep(6)
                 data_convertor.get_constraint_for_weekend(weekend, weekend_constraints)
             constraints.append(weekend_constraints)
             time.sleep(10)
             self.loading_bar = self.loading_bar + 1
-            self.update_status_message(str((self.loading_bar/base)*100) + '%', 'weekend')
+            self.update_status_message(str((self.loading_bar / base) * 100) + '%', 'weekend')
         self.employees = employees
         return constraints, employees
 
@@ -131,9 +131,9 @@ class AppRunner:
                 data_convertor.get_constraint_for_midweek(week, midweek_constraints)
             constraints.append(midweek_constraints)
             time.sleep(10)
+            self.loading_bar = self.loading_bar + 1
+            self.update_status_message(str((self.loading_bar / base) * 100) + '%', 'mid-week')
 
-        self.loading_bar = self.loading_bar + 1
-        self.update_status_message(str((self.loading_bar/base)*100) + '%', 'mid-week')
         return constraints, employees
 
     def get_result_sheet_convertor(self):
@@ -148,7 +148,6 @@ class AppRunner:
         chosen_board = self.board
         logging.info("weekend: going over on 6000 randomized options")
         base = 6000
-        chunk = base / len(employees)
         rules = get_all_rules()
 
         for i in range(base):
@@ -169,8 +168,9 @@ class AppRunner:
             else:
                 del board_for_test, employee_fresh
                 gc.collect()
-            self.loading_bar = self.loading_bar + chunk
-            self.update_status_message(str((self.loading_bar/base)*100) + '%', 'weekend-algo')
+            self.loading_bar = self.loading_bar + 1
+            if i % 30 == 0:
+                self.update_status_message(str((self.loading_bar / base) * 100) + '%', 'weekend-algo')
 
         self.board = chosen_board
 
@@ -188,7 +188,6 @@ class AppRunner:
         chosen_board = self.board
         logging.info("midweek: going over on 4000 randomized options")
         base = 4000
-        chunk = base / len(employees)
         rules = get_all_rules()
         for i in range(base):
             self.kill_process_if_needed()
@@ -209,8 +208,9 @@ class AppRunner:
             else:
                 del board_for_test, employee_fresh
                 gc.collect()
-            self.loading_bar = self.loading_bar + chunk
-            self.update_status_message(str((self.loading_bar/base)*100) + '%', 'mid-week-algo')
+            self.loading_bar = self.loading_bar + 1
+            if i % 30 == 0:
+                self.update_status_message(str((self.loading_bar / base) * 100) + '%', 'mid-week-algo')
 
         self.board = chosen_board
         convertor = self.get_result_sheet_convertor()
@@ -219,7 +219,6 @@ class AppRunner:
             time.sleep(6)
             convertor.write_mid_week(week, self.board)
         self.update_status_message('DONE', 'midweek-algo')
-
 
     @staticmethod
     def mid_week_flow(app_runner, app_runners, master_sheet_id):

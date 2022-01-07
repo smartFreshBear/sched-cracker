@@ -81,7 +81,6 @@ class SpreadsheetClient:
                 row_of_cells.append(cell)
             cell_table.append(row_of_cells)
 
-        # cause its heavy as fuck
         del result
         gc.collect()
         return cell_table
