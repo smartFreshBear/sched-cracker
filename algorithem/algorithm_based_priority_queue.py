@@ -33,7 +33,6 @@ def does_all_rule_applied(rules, employee, board, week, day, shift) -> bool:
     return Rules.check_for_list_of_rules(employee, board, week, day, shift, rules)
 
 
-
 # try to merge the two functions
 def solve_weekend(board: PlanningBoard,
                   employees: list[Employee],
