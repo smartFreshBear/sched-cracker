@@ -136,11 +136,15 @@ class PlanningBoard:
 
 
 class EmployeeDoubleShiftRequirement:
-    def __init__(self, weeks_to_rules_mappings: dict[WeekOfTheMonth, dict[ShiftTypes, int]] = None):
-        if weeks_to_rules_mappings is None:
-            self.weeks_to_rules_mappings = {}
+    def __init__(self, weeks_to_ignored_rules_mappings: dict[WeekOfTheMonth, dict[ShiftTypes, int]] = None,
+                 weekend_rules_to_ignore=None):
+        if weekend_rules_to_ignore is None:
+            self.weekend_rules_to_ignore = []
+        if weeks_to_ignored_rules_mappings is None:
+            self.mid_weeks_to_rules_mappings = {}
         else:
-            self.weeks_to_rules_mappings = weeks_to_rules_mappings
+            self.mid_weeks_to_rules_mappings = weeks_to_ignored_rules_mappings
+            self.weekend_rules_to_ignore = weekend_rules_to_ignore
 
 
 class Employee:
@@ -149,14 +153,14 @@ class Employee:
                  sex,
                  new=False,
                  priority=100,
-                 mid_week_rule_override: EmployeeDoubleShiftRequirement = EmployeeDoubleShiftRequirement()):
+                 employee_doube_req: EmployeeDoubleShiftRequirement = EmployeeDoubleShiftRequirement()):
 
         self.name = name
         self.sex = sex
         self.isNew = new
         # Employee not suppose to be aware of priority
         self.priority = priority
-        self.mid_week_rule_override = mid_week_rule_override
+        self.employee_double_request = employee_doube_req
 
     def __lt__(self, other):
         return other.priority < self.priority
