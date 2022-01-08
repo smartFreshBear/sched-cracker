@@ -42,15 +42,12 @@ class UserDataConvertorGoogleSheetBased:
             employee_constraints = EmployeeConstraintsForWeekDays(employee=employee_details,
                                                                   from_day_to_constraint={})
 
-        red_cell = self.googleclient.load_cells_given_from_to(RED_CELL, RED_CELL)[0][0]
-
         to_cell = self.get_to_midweek_cell_number_given_week(week)
         from_cell = self.get_from_cell_midweek_number_given_week(week)
-
         cell_rows = self.googleclient.load_cells_given_from_to(from_cell, to_cell)
         for day in range(len(DaysOfWeek)):
             for shift in range(len(MidWeekShiftType) - 1):
-                if self.is_red_cell(cell_rows, day, red_cell, shift):
+                if self.is_red_cell(cell_rows[shift][day]):
                     self.handle_constraints(day, employee_constraints, shift, week)
         return employee_constraints
 
@@ -78,13 +75,11 @@ class UserDataConvertorGoogleSheetBased:
             employee_constraints = EmployeeConstraintsForWeekends(employee=employee_details,
                                                                   from_weekend_to_constraints={})
 
-        red_cell = self.googleclient.load_cells_given_from_to(RED_CELL, RED_CELL)[0][0]
-
         from_weekend_to_relevant_cells = self.get_weekend_cells_given_week(week)
 
         for key, value in from_weekend_to_relevant_cells.items():
             weekend_cell = self.googleclient.load_cells_given_pair(value)[0][0]
-            if weekend_cell.color == red_cell.color:
+            if self.is_red_cell(weekend_cell):
                 if week not in employee_constraints.from_day_to_constraint:
                     employee_constraints.from_day_to_constraint[week] = []
                 employee_constraints.from_day_to_constraint[week].append(key)
@@ -93,8 +88,7 @@ class UserDataConvertorGoogleSheetBased:
 
     def write_weekend(self, week: WeekOfTheMonth, board: PlanningBoard):
 
-        week_zero_based_value = week.value - 1
-        weekend_shift = board.weekendMapping[week_zero_based_value]
+        weekend_shift = board.weekendMapping[week.value]
         from_weekend_to_relevant_cells = self.get_weekend_cells_given_week(week)
 
         for key, value in from_weekend_to_relevant_cells.items():
@@ -107,8 +101,8 @@ class UserDataConvertorGoogleSheetBased:
         return True
 
     @staticmethod
-    def is_red_cell(cell_rows, day, red_cell, shift):
-        return cell_rows[shift][day].color == red_cell.color
+    def is_red_cell(cell):
+        return cell.text.lower() == 'true'
 
     @staticmethod
     def handle_constraints(day, employee_constraints, shift, week):
