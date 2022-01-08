@@ -4,20 +4,22 @@ from objects.Classes import *
 from uxui.googlesheetinterface import SpreadsheetClient
 from uxui.user_data_convertor_googlesheet import UserDataConvertorGoogleSheetBased
 
-sheet_id_for_test = '1HMsTxrDeekNQRVNaTQT3xg3iksvzHVzQ_PCIx1xPsTE'
+sheet_id_for_test_employee_request = '1f705Ej9p5xnR3-eWrf44Cmqmtzgr_R-wCcuFL9uQJn8'
+sheet_id_for_summary = '1JeBn8pq886KbtaQaV3B8-P7FP_ynLUhcNIUINRNdt2g'
+
 
 
 class TestUserDataConvertorGoogleSheetBased(TestCase):
 
     def test_get_employee_details_from_sheet(self):
-        user_data_convertor_googlesheet = UserDataConvertorGoogleSheetBased(SpreadsheetClient(sheet_id_for_test))
+        user_data_convertor_googlesheet = UserDataConvertorGoogleSheetBased(SpreadsheetClient(sheet_id_for_test_employee_request))
         details = user_data_convertor_googlesheet.get_employee_details()
-        assert details.name == 'Aviad Shalom'
-        assert details.isNew == True
+        assert details.name == 'Aviad'
+        assert details.isNew == False
         assert details.sex == 'male'
 
     def test_get_constraints_for_user_given_mid_week(self):
-        user_data_convertor_googlesheet = UserDataConvertorGoogleSheetBased(SpreadsheetClient(sheet_id_for_test))
+        user_data_convertor_googlesheet = UserDataConvertorGoogleSheetBased(SpreadsheetClient(sheet_id_for_test_employee_request))
         constraints_of_aviad = user_data_convertor_googlesheet.get_constraint_for_midweek(WeekOfTheMonth.Forth)
         sunday_constraints = constraints_of_aviad.from_day_to_constraint[(WeekOfTheMonth.Forth, DaysOfWeek.Sunday)]
         thu_constraints = constraints_of_aviad.from_day_to_constraint[(WeekOfTheMonth.Forth, DaysOfWeek.Thursday)]
@@ -30,7 +32,7 @@ class TestUserDataConvertorGoogleSheetBased(TestCase):
         assert MidWeekShiftType.Night in thu_constraints
 
     def test_get_constraints_for_user_given_weekend(self):
-        user_data_convertor_googlesheet = UserDataConvertorGoogleSheetBased(SpreadsheetClient(sheet_id_for_test))
+        user_data_convertor_googlesheet = UserDataConvertorGoogleSheetBased(SpreadsheetClient(sheet_id_for_test_employee_request))
         employee_constraints = user_data_convertor_googlesheet.get_constraint_for_weekend(WeekOfTheMonth.First)
         constraints = employee_constraints.from_day_to_constraint[WeekOfTheMonth.First]
         assert WeekendShiftsTypes.Short in constraints
@@ -42,7 +44,7 @@ class TestUserDataConvertorGoogleSheetBased(TestCase):
         assert WeekendShiftsTypes.Saturday in constraints
 
     def test_write_midweek(self):
-        user_data_convertor_googlesheet = UserDataConvertorGoogleSheetBased(SpreadsheetClient(sheet_id_for_test))
+        user_data_convertor_googlesheet = UserDataConvertorGoogleSheetBased(SpreadsheetClient(sheet_id_for_summary))
         board = PlanningBoard()
         board.midWeekMapping[0][0].from_shift_to_employee[MidWeekShiftType.Short] = Employee('Aviad', 'male')
         board.midWeekMapping[0][1].from_shift_to_employee[MidWeekShiftType.Short] = Employee('Duba', 'female')
@@ -61,7 +63,7 @@ class TestUserDataConvertorGoogleSheetBased(TestCase):
         assert result[0][0].text == 'Aviad'
         assert result[0][1].text == 'Duba'
 
-        user_data_convertor_googlesheet = UserDataConvertorGoogleSheetBased(SpreadsheetClient(sheet_id_for_test))
+        user_data_convertor_googlesheet = UserDataConvertorGoogleSheetBased(SpreadsheetClient(sheet_id_for_summary))
 
         board.midWeekMapping[4][0].from_shift_to_employee[MidWeekShiftType.Short] = Employee('Aviad', 'male')
         board.midWeekMapping[4][1].from_shift_to_employee[MidWeekShiftType.Short] = Employee('Duba', 'female')
@@ -83,35 +85,20 @@ class TestUserDataConvertorGoogleSheetBased(TestCase):
 
 
     def test_get_mid_week_double_shift(self):
-        user_data_convertor_googlesheet = UserDataConvertorGoogleSheetBased(SpreadsheetClient(sheet_id_for_test))
+        user_data_convertor_googlesheet = UserDataConvertorGoogleSheetBased(SpreadsheetClient(sheet_id_for_test_employee_request))
         list_of_double_shift_request = user_data_convertor_googlesheet.get_double_shift_for_employee()
-
         assert list_of_double_shift_request[1][0].text == 'True'
         assert list_of_double_shift_request[2][0].text == 'False'
         print(list_of_double_shift_request)
 
 
     def test_get_employee_with_rules_override(self):
-        user_data_convertor_googlesheet = UserDataConvertorGoogleSheetBased(SpreadsheetClient(sheet_id_for_test))
+        user_data_convertor_googlesheet = UserDataConvertorGoogleSheetBased(SpreadsheetClient(sheet_id_for_test_employee_request))
         employee = user_data_convertor_googlesheet.get_employee_details()
 
         assert employee.mid_week_rule_override is not None
         assert len(employee.mid_week_rule_override.weeks_to_rules_mappings[0][0]) > 0
         assert len(employee.mid_week_rule_override.weeks_to_rules_mappings[0][2]) > 0
         assert len(employee.mid_week_rule_override.weeks_to_rules_mappings[3][1]) > 0
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
