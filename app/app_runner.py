@@ -172,6 +172,7 @@ class AppRunner:
             if i % 30 == 0:
                 self.update_status_message(str((self.loading_bar / base) * 100) + '%', 'weekend-algo')
 
+        self.update_status_message(str(100) + '%', 'weekend-algo')
         self.board = chosen_board
 
         convertor = self.get_result_sheet_convertor()
@@ -212,6 +213,7 @@ class AppRunner:
             if i % 30 == 0:
                 self.update_status_message(str((self.loading_bar / base) * 100) + '%', 'mid-week-algo')
 
+        self.update_status_message(str(100) + '%', 'weekend-algo')
         self.board = chosen_board
         convertor = self.get_result_sheet_convertor()
         for week in WeekOfTheMonth:

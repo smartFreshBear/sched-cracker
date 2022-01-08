@@ -88,8 +88,7 @@ class UserDataConvertorGoogleSheetBased:
 
     def write_weekend(self, week: WeekOfTheMonth, board: PlanningBoard):
 
-        week_zero_based_value = week.value - 1
-        weekend_shift = board.weekendMapping[week_zero_based_value]
+        weekend_shift = board.weekendMapping[week.value]
         from_weekend_to_relevant_cells = self.get_weekend_cells_given_week(week)
 
         for key, value in from_weekend_to_relevant_cells.items():
