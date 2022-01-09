@@ -35,6 +35,7 @@ def trigger_sched_solver_weekend():
         if len(list_of_app_runner) == 0:
             logging.info("preparation for running algo")
             app_runner = AppRunner()
+            app_runner.message = 'initiating weekend flow'
             thread = Thread(target=AppRunner.weekend_flow, args=(app_runner, MASTER_SHEET_ID))
             thread.start()
             list_of_app_runner.append(app_runner)
@@ -57,8 +58,9 @@ def trigger_sched_solver_midweek():
     else:
         if len(list_of_app_runner) == 1 and not list_of_app_runner[0].did_midweek_started:
             logging.info("preparation for running algo")
-            #MAKE SURE GIVE LIST OF APP_RUNNER IN ORDER TO STOP
-            thread = Thread(target=AppRunner.mid_week_flow, args=(list_of_app_runner[0], list_of_app_runner, MASTER_SHEET_ID))
+            app_runner = list_of_app_runner[0]
+            app_runner.message = 'initiating mid-week flow'
+            thread = Thread(target=AppRunner.mid_week_flow, args=(app_runner, list_of_app_runner, MASTER_SHEET_ID))
             thread.start()
             return 'algorithm_triggered'
         else:
