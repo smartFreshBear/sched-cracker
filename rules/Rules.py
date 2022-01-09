@@ -343,16 +343,34 @@ class IfEmployeeDidSatInWeekendHeWontDoFriday(Rule):
             return True
 
 
+class IfEmployeeDidShortHeCantDoLong(Rule):
+
+    @staticmethod
+    def get_id():
+        return 19
+
+    def check(self, employee, board, week=None, day=None, shift=None):
+        if day is None:
+            return True
+
+        elif shift == MidWeekShiftType.Long:
+            return employee not in get_all_employees_for_shift_in_for_previous_days(board, week, day,
+                                                                                    MidWeekShiftType.Short)
+        else:
+            return True
+
+
 def check_for_list_of_rules(employee, board, week=None, day=None, shift=None, list_of_rules=None):
     if employee is None:
         return False
 
-    rules_to_override_mappings = employee.mid_week_rule_override.mid_weeks_to_rules_mappings
+    rules_to_override_mappings = employee.employee_double_request.mid_weeks_to_rules_mappings
 
     list_of_rules_id_list = [rule_id for rule_id in rules_to_override_mappings.get(week, {}).values()] \
         if rules_to_override_mappings is not None else []
-    list_of_rules_id_list.extend(employee.weekend_rules_to_ignore)
+    list_of_rules_id_list.append(employee.employee_double_request.weekend_rules_to_ignore)
 
+    print("employee is {}".format(employee))
     all_rules_id_to_ignore = [rule_id for list_of_rules in list_of_rules_id_list for rule_id in list_of_rules]
 
     filtered_rules = [rule for rule in list_of_rules if rule.get_id() not in all_rules_id_to_ignore]
@@ -380,7 +398,8 @@ def get_all_rules():
         IfEmployeeDidFridayInWeekendHeWontDoFriday(),
         IfEmployeeDidFridayInWeekendHeWontDoSat(),
         IfEmployeeDidSatInWeekendHeWontDoAnother(),
-        IfEmployeeDidSatInWeekendHeWontDoFriday()
+        IfEmployeeDidSatInWeekendHeWontDoFriday(),
+        IfEmployeeDidShortHeCantDoLong()
     ]
 
 

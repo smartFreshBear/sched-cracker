@@ -73,15 +73,15 @@ class SpreadsheetClient:
         cell_table = list()
         for row in result['sheets'][0]['data'][0]['rowData']:
             row_of_cells = list()
-            for sheet_cell in row['values']:
-                entered_value = sheet_cell.get('userEnteredValue', None)
-                user_str = '' if entered_value is None else str(list(entered_value.values())[0])
-                cell = Cell(color=sheet_cell.get('effectiveFormat', {}).get('backgroundColor', {}), text=user_str)
+            if 'values' in row:
+                for sheet_cell in row['values']:
+                    entered_value = sheet_cell.get('userEnteredValue', None)
+                    user_str = '' if entered_value is None else str(list(entered_value.values())[0])
+                    cell = Cell(color=sheet_cell.get('effectiveFormat', {}).get('backgroundColor', {}), text=user_str)
 
-                row_of_cells.append(cell)
-            cell_table.append(row_of_cells)
+                    row_of_cells.append(cell)
+                cell_table.append(row_of_cells)
 
-        # cause its heavy as fuck
         del result
         gc.collect()
         return cell_table
