@@ -148,7 +148,8 @@ class UserDataConvertorGoogleSheetBased:
             if double_shift_cell[i][0].text.lower() == 'true':
                 employee_double_shift_req.weekend_rules_to_ignore. \
                     extend(from_double_shift_weekend_to_list_of_canceled_rules[weekend_shift])
-    def get_double_shift_for_employee(self):
+
+    def get_double_shift_for_employee_mid_week(self):
         return self.googleclient.load_cells_given_pair(DOUBLE_SHIFT_MID_WEEK_RANGE)
 
     def get_double_shift_for_employee_weekend(self):
