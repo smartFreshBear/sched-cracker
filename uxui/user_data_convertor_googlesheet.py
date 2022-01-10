@@ -1,4 +1,4 @@
-from rules.Rules import from_double_shift_request_to_list_of_rules
+from rules.Rules import from_double_shift_request_to_list_of_rules, from_double_shift_weekend_to_list_of_canceled_rules
 from objects.Classes import WeekOfTheMonth, DaysOfWeek, EmployeeConstraintsForWeekDays, \
     MidWeekShiftType, EmployeeConstraintsForWeekends, WeekendShiftsTypes, PlanningBoard, Employee, \
     EmployeeDoubleShiftRequirement
@@ -9,6 +9,7 @@ NAME_LOCATION_FROM = 'A8'
 NAME_LOCATION_TO = 'B10'
 RED_CELL = 'J5'
 DOUBLE_SHIFT_MID_WEEK_RANGE = 'J7:K31'
+DOUBLE_SHIFT_WEEKEND_RANGE = 'S8:T11'
 
 
 class UserDataConvertorGoogleSheetBased:
@@ -114,13 +115,14 @@ class UserDataConvertorGoogleSheetBased:
     def get_employee_details(self):
         employee_double_shift_req = EmployeeDoubleShiftRequirement()
         self.handle_mid_week_double_shift(employee_double_shift_req)
+        self.handle_weekend_double_shift(employee_double_shift_req)
 
         table = self.googleclient.load_cells_given_from_to(NAME_LOCATION_FROM, NAME_LOCATION_TO)
 
         employee = Employee(sex=table[2][1].text,
                             name=table[0][1].text,
                             new=table[1][1].text.lower() == 'yes',
-                            mid_week_rule_override=employee_double_shift_req)
+                            employee_doube_req=employee_double_shift_req)
         if not employee.name:
             raise Exception("you cant provide empty name in id {}".format(self.googleclient.sheet_id))
 
@@ -131,17 +133,27 @@ class UserDataConvertorGoogleSheetBased:
     def handle_mid_week_double_shift(self, employee_double_shift_req):
 
         week_rows_amount_in_ui = len(MidWeekShiftType.get_literally_all()) + 2
-        for week_index, double_for_week in enumerate(self.batchify(self.get_double_shift_for_employee(),
+        for week_index, double_for_week in enumerate(self.batchify(self.get_double_shift_for_employee_mid_week(),
                                                                    week_rows_amount_in_ui)):
             for shift_index, double_shift_cells in enumerate(double_for_week[1:4]):
                 if double_shift_cells[0].text == 'True':
-                    if week_index not in employee_double_shift_req.weeks_to_rules_mappings:
-                        employee_double_shift_req.weeks_to_rules_mappings[week_index] = {}
-                    employee_double_shift_req.weeks_to_rules_mappings[week_index][shift_index] = \
+                    if week_index not in employee_double_shift_req.mid_weeks_to_rules_mappings:
+                        employee_double_shift_req.mid_weeks_to_rules_mappings[week_index] = {}
+                    employee_double_shift_req.mid_weeks_to_rules_mappings[week_index][shift_index] = \
                         from_double_shift_request_to_list_of_rules[MidWeekShiftType(shift_index)]
 
-    def get_double_shift_for_employee(self):
+    def handle_weekend_double_shift(self, employee_double_shift_req):
+        double_shift_cell = self.get_double_shift_for_employee_weekend()
+        for i, weekend_shift in enumerate(WeekendShiftsTypes.get_literally_all()):
+            if double_shift_cell[i][0].text.lower() == 'true':
+                employee_double_shift_req.weekend_rules_to_ignore. \
+                    extend(from_double_shift_weekend_to_list_of_canceled_rules[weekend_shift])
+
+    def get_double_shift_for_employee_mid_week(self):
         return self.googleclient.load_cells_given_pair(DOUBLE_SHIFT_MID_WEEK_RANGE)
+
+    def get_double_shift_for_employee_weekend(self):
+        return self.googleclient.load_cells_given_pair(DOUBLE_SHIFT_WEEKEND_RANGE)
 
     @staticmethod
     def batchify(iterable, batch_size=1):

@@ -147,7 +147,7 @@ class AppRunner:
         weight = 99999
         chosen_board = self.board
         logging.info("weekend: going over on 6000 randomized options")
-        base = 6000
+        base = 1000
         rules = get_all_rules()
 
         for i in range(base):
@@ -168,8 +168,9 @@ class AppRunner:
             else:
                 del board_for_test, employee_fresh
                 gc.collect()
-            self.loading_bar = self.loading_bar + 1
+                self.loading_bar = self.loading_bar + 1
             if i % 30 == 0:
+                gc.collect()
                 self.update_status_message(str((self.loading_bar / base) * 100) + '%', 'weekend-algo')
 
         self.update_status_message(str(100) + '%', 'weekend-algo')
@@ -188,7 +189,7 @@ class AppRunner:
         weight = 99999
         chosen_board = self.board
         logging.info("midweek: going over on 4000 randomized options")
-        base = 4000
+        base = 2000
         rules = get_all_rules()
         for i in range(base):
             self.kill_process_if_needed()
@@ -208,9 +209,9 @@ class AppRunner:
                 chosen_board = board_for_test
             else:
                 del board_for_test, employee_fresh
-                gc.collect()
             self.loading_bar = self.loading_bar + 1
             if i % 30 == 0:
+                gc.collect()
                 self.update_status_message(str((self.loading_bar / base) * 100) + '%', 'mid-week-algo')
 
         self.update_status_message(str(100) + '%', 'weekend-algo')

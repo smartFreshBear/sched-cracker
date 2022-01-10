@@ -114,6 +114,35 @@ def get_all_employees_for_shift_in_for_previous_weekends(board, week=None, day=N
     return all_employee_for_shift_in_previous_weekends
 
 
+# class IfEmployeeDidShortHeWontDoItAgainOrWillNotDoLong(Rule):
+#
+#     def __init__(self):
+#         self.id = 4
+#
+#     def check(self, employee, board, week=None, day=None, shift=None):
+#         if day is None:
+#             return True
+#         else:
+#             if shift == MidWeekShiftType.Short:
+#                 employees_that_did_shorts = get_all_employees_for_shift_in_for_previous_days(board, week, day,
+#                                                                                              MidWeekShiftType.Short)
+#                 employees_that_did_longs = get_all_employees_for_shift_in_for_previous_days(board, week, day,
+#                                                                                             MidWeekShiftType.Long)
+#                 return (employee not in employees_that_did_shorts) and (employee not in employees_that_did_longs)
+#
+#             if shift == MidWeekShiftType.Long:
+#                 employees_that_did_shorts = get_all_employees_for_shift_in_for_previous_days(board, week, day,
+#                                                                                              MidWeekShiftType.Short)
+#                 employees_that_did_nights = get_all_employees_for_shift_in_for_previous_days(board, week, day,
+#                                                                                              MidWeekShiftType.Night)
+#                 employees_that_did_long = get_all_employees_for_shift_in_for_previous_days(board, week, day,
+#                                                                                            MidWeekShiftType.Long)
+#                 return (employee not in employees_that_did_shorts) and (employee not in employees_that_did_nights) and (
+#                         employee not in employees_that_did_long)
+#             else:
+#                 return True
+
+
 class IfEmployeeDidShortHeCantDoShort(Rule):
 
     @staticmethod
@@ -215,40 +244,7 @@ class IfEmployeeDidNightHeCantDoLong(Rule):
             return True
 
 
-# class EmployeeIfEmployeeDidShortInWeekendHeWontDoAnother(Rule):
-#
-#     @staticmethod
-#     def get_id():
-#         return 11
-#
-#     def check(self, employee, board, week=None, day=None, shift=None):
-#         if day is not None:
-#             return True
-#         elif shift == WeekendShiftsTypes.Short:
-#             employees_that_did_shorts = get_all_employees_for_shift_in_for_previous_weekends(board, week, day,
-#                                                                                              WeekendShiftsTypes.Short)
-#             return employee not in employees_that_did_shorts
-#         else:
-#             return True
-
-
-# class EmployeeIfEmployeeDidShortInWeekendHeWontDoLong(Rule):
-#     @staticmethod
-#     def get_id():
-#         return 13
-#
-#     def check(self, employee, board, week=None, day=None, shift=None):
-#         if day is not None:
-#             return True
-#         elif shift == WeekendShiftsTypes.Long:
-#             employees_that_did_shorts = get_all_employees_for_shift_in_for_previous_weekends(board, week, day,
-#                                                                                              WeekendShiftsTypes.Short)
-#             return employee not in employees_that_did_shorts
-#         else:
-#             return True
-
-#Continue Long -> short  Long->Long, Friday->Friday Friday-> Sat , Sat-Fri, Sat->Fri
-class EmployeeCanDoShortOrLongInWeekendOnceAMonth(Rule):
+class IfEmployeeDidShortInWeekendHeWontDoAnother(Rule):
 
     @staticmethod
     def get_id():
@@ -257,18 +253,15 @@ class EmployeeCanDoShortOrLongInWeekendOnceAMonth(Rule):
     def check(self, employee, board, week=None, day=None, shift=None):
         if day is not None:
             return True
-        elif shift == WeekendShiftsTypes.Short or shift == WeekendShiftsTypes.Long:
+        elif shift == WeekendShiftsTypes.Short:
             employees_that_did_shorts = get_all_employees_for_shift_in_for_previous_weekends(board, week, day,
                                                                                              WeekendShiftsTypes.Short)
-            employees_that_did_longs = get_all_employees_for_shift_in_for_previous_weekends(board, week, day,
-                                                                                            WeekendShiftsTypes.Long)
-            return (employee not in employees_that_did_shorts) and (employee not in employees_that_did_longs)
+            return employee not in employees_that_did_shorts
         else:
             return True
 
 
-class EmployeeCanDoFridayNightOrSaturdayNightOnceAMonth(Rule):
-
+class IfEmployeeDidShortInWeekendHeWontDoLong(Rule):
     @staticmethod
     def get_id():
         return 12
@@ -276,26 +269,137 @@ class EmployeeCanDoFridayNightOrSaturdayNightOnceAMonth(Rule):
     def check(self, employee, board, week=None, day=None, shift=None):
         if day is not None:
             return True
+        elif shift == WeekendShiftsTypes.Long:
+            employees_that_did_shorts = get_all_employees_for_shift_in_for_previous_weekends(board, week, day,
+                                                                                             WeekendShiftsTypes.Short)
+            return employee not in employees_that_did_shorts
         else:
-            if shift == WeekendShiftsTypes.Friday or shift == WeekendShiftsTypes.Saturday:
-                employees_that_did_friday = get_all_employees_for_shift_in_for_previous_weekends(board, week, day,
-                                                                                                 WeekendShiftsTypes.Friday)
-                employees_that_did_sats = get_all_employees_for_shift_in_for_previous_weekends(board, week, day,
-                                                                                               WeekendShiftsTypes.Saturday)
-                return (employee not in employees_that_did_friday) and (employee not in employees_that_did_sats)
-            else:
-                return True
+            return True
+
+
+class IfEmployeeDidLongInWeekendHeWontDoShort(Rule):
+    @staticmethod
+    def get_id():
+        return 13
+
+    def check(self, employee, board, week=None, day=None, shift=None):
+        if day is not None:
+            return True
+        elif shift == WeekendShiftsTypes.Short:
+            employees_that_did_shorts = get_all_employees_for_shift_in_for_previous_weekends(board, week, day,
+                                                                                             WeekendShiftsTypes.Long)
+            return employee not in employees_that_did_shorts
+        else:
+            return True
+
+
+class IfEmployeeDidLongInWeekendHeWontDoAnother(Rule):
+    @staticmethod
+    def get_id():
+        return 14
+
+    def check(self, employee, board, week=None, day=None, shift=None):
+        if day is not None:
+            return True
+        elif shift == WeekendShiftsTypes.Long:
+            employees_that_did_shorts = get_all_employees_for_shift_in_for_previous_weekends(board, week, day,
+                                                                                             WeekendShiftsTypes.Long)
+            return employee not in employees_that_did_shorts
+        else:
+            return True
+
+class IfEmployeeDidFridayInWeekendHeWontDoFriday(Rule):
+    @staticmethod
+    def get_id():
+        return 15
+
+    def check(self, employee, board, week=None, day=None, shift=None):
+        if day is not None:
+            return True
+        elif shift == WeekendShiftsTypes.Friday:
+            employees_that_did_fridays = get_all_employees_for_shift_in_for_previous_weekends(board, week, day,
+                                                                                              WeekendShiftsTypes.Friday)
+            return employee not in employees_that_did_fridays
+        else:
+            return True
+
+
+class IfEmployeeDidFridayInWeekendHeWontDoSat(Rule):
+    @staticmethod
+    def get_id():
+        return 16
+
+    def check(self, employee, board, week=None, day=None, shift=None):
+        if day is not None:
+            return True
+        elif shift == WeekendShiftsTypes.Saturday:
+            employees_that_did_fridays = get_all_employees_for_shift_in_for_previous_weekends(board, week, day,
+                                                                                              WeekendShiftsTypes.Friday)
+            return employee not in employees_that_did_fridays
+        else:
+            return True
+
+
+class IfEmployeeDidSatInWeekendHeWontDoAnother(Rule):
+    @staticmethod
+    def get_id():
+        return 17
+
+    def check(self, employee, board, week=None, day=None, shift=None):
+        if day is not None:
+            return True
+        elif shift == WeekendShiftsTypes.Saturday:
+            employees_that_did_sat = get_all_employees_for_shift_in_for_previous_weekends(board, week, day,
+                                                                                          WeekendShiftsTypes.Saturday)
+            return employee not in employees_that_did_sat
+        else:
+            return True
+
+
+class IfEmployeeDidSatInWeekendHeWontDoFriday(Rule):
+    @staticmethod
+    def get_id():
+        return 18
+
+    def check(self, employee, board, week=None, day=None, shift=None):
+        if day is not None:
+            return True
+        elif shift == WeekendShiftsTypes.Friday:
+            employees_that_did_sat = get_all_employees_for_shift_in_for_previous_weekends(board, week, day,
+                                                                                          WeekendShiftsTypes.Saturday)
+            return employee not in employees_that_did_sat
+        else:
+            return True
+
+
+class IfEmployeeDidShortHeCantDoLong(Rule):
+
+    @staticmethod
+    def get_id():
+        return 19
+
+    def check(self, employee, board, week=None, day=None, shift=None):
+        if day is None:
+            return True
+
+        elif shift == MidWeekShiftType.Long:
+            return employee not in get_all_employees_for_shift_in_for_previous_days(board, week, day,
+                                                                                    MidWeekShiftType.Short)
+        else:
+            return True
 
 
 def check_for_list_of_rules(employee, board, week=None, day=None, shift=None, list_of_rules=None):
     if employee is None:
         return False
 
-    rules_to_override_mappings = employee.mid_week_rule_override.weeks_to_rules_mappings
+    rules_to_override_mappings = employee.employee_double_request.mid_weeks_to_rules_mappings
 
     list_of_rules_id_list = [rule_id for rule_id in rules_to_override_mappings.get(week, {}).values()] \
         if rules_to_override_mappings is not None else []
+    list_of_rules_id_list.append(employee.employee_double_request.weekend_rules_to_ignore)
 
+    print("employee is {}".format(employee))
     all_rules_id_to_ignore = [rule_id for list_of_rules in list_of_rules_id_list for rule_id in list_of_rules]
 
     filtered_rules = [rule for rule in list_of_rules if rule.get_id() not in all_rules_id_to_ignore]
@@ -316,8 +420,15 @@ def get_all_rules():
         IfEmployeeDidLongHeCantNight(),
         IfEmployeeDidNightHeCantDoMoreNight(),
         IfEmployeeDidNightHeCantDoLong(),
-        EmployeeCanDoShortOrLongInWeekendOnceAMonth(),
-        EmployeeCanDoFridayNightOrSaturdayNightOnceAMonth()
+        IfEmployeeDidShortInWeekendHeWontDoAnother(),
+        IfEmployeeDidShortInWeekendHeWontDoLong(),
+        IfEmployeeDidLongInWeekendHeWontDoShort(),
+        IfEmployeeDidLongInWeekendHeWontDoAnother(),
+        IfEmployeeDidFridayInWeekendHeWontDoFriday(),
+        IfEmployeeDidFridayInWeekendHeWontDoSat(),
+        IfEmployeeDidSatInWeekendHeWontDoAnother(),
+        IfEmployeeDidSatInWeekendHeWontDoFriday(),
+        IfEmployeeDidShortHeCantDoLong()
     ]
 
 
@@ -329,10 +440,9 @@ from_double_shift_request_to_list_of_rules = {
 }
 
 from_double_shift_weekend_to_list_of_canceled_rules = {
-    WeekendShiftsTypes.Short: [IfEmployeeDidShortHeCantDoShort.get_id(), IfEmployeeDidLongHeCantDoShort.get_id()],
-    WeekendShiftsTypes.Long: [IfEmployeeDidLongHeCantLong.get_id(), IfEmployeeDidNightHeCantDoLong.get_id()],
-    WeekendShiftsTypes.Friday: [IfEmployeeDidLongHeCantNight.get_id(), IfEmployeeDidNightHeCantDoMoreNight.get_id()],
-    WeekendShiftsTypes.Saturday: [IfEmployeeDidLongHeCantNight.get_id(), IfEmployeeDidNightHeCantDoMoreNight.get_id()]
-
+    WeekendShiftsTypes.Short: [IfEmployeeDidShortInWeekendHeWontDoAnother.get_id(), IfEmployeeDidLongInWeekendHeWontDoShort.get_id()],
+    WeekendShiftsTypes.Long: [IfEmployeeDidShortInWeekendHeWontDoLong.get_id(), IfEmployeeDidLongInWeekendHeWontDoAnother.get_id()],
+    WeekendShiftsTypes.Friday: [IfEmployeeDidFridayInWeekendHeWontDoFriday.get_id(), IfEmployeeDidSatInWeekendHeWontDoFriday.get_id()],
+    WeekendShiftsTypes.Saturday: [IfEmployeeDidSatInWeekendHeWontDoAnother.get_id(), IfEmployeeDidFridayInWeekendHeWontDoSat.get_id()]
 
 }

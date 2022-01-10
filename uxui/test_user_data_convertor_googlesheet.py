@@ -4,9 +4,7 @@ from objects.Classes import *
 from uxui.googlesheetinterface import SpreadsheetClient
 from uxui.user_data_convertor_googlesheet import UserDataConvertorGoogleSheetBased
 
-sheet_id_for_test_employee_request = '1f705Ej9p5xnR3-eWrf44Cmqmtzgr_R-wCcuFL9uQJn8'
-sheet_id_for_summary = '1JeBn8pq886KbtaQaV3B8-P7FP_ynLUhcNIUINRNdt2g'
-
+sheet_id_for_test = '1HMsTxrDeekNQRVNaTQT3xg3iksvzHVzQ_PCIx1xPsTE'
 
 
 class TestUserDataConvertorGoogleSheetBased(TestCase):
@@ -86,9 +84,19 @@ class TestUserDataConvertorGoogleSheetBased(TestCase):
 
     def test_get_mid_week_double_shift(self):
         user_data_convertor_googlesheet = UserDataConvertorGoogleSheetBased(SpreadsheetClient(sheet_id_for_test_employee_request))
-        list_of_double_shift_request = user_data_convertor_googlesheet.get_double_shift_for_employee()
+        list_of_double_shift_request = user_data_convertor_googlesheet.get_double_shift_for_employee_mid_week()
         assert list_of_double_shift_request[1][0].text == 'True'
         assert list_of_double_shift_request[2][0].text == 'False'
+        print(list_of_double_shift_request)
+
+    def test_get_weekend_double_shift(self):
+        user_data_convertor_googlesheet = UserDataConvertorGoogleSheetBased(SpreadsheetClient(sheet_id_for_test_employee_request))
+        list_of_double_shift_request = user_data_convertor_googlesheet.get_double_shift_for_employee_weekend()
+
+        assert list_of_double_shift_request[0][0].text == 'True'
+        assert list_of_double_shift_request[1][0].text == 'False'
+        assert list_of_double_shift_request[2][0].text == 'True'
+        assert list_of_double_shift_request[3][0].text == 'False'
         print(list_of_double_shift_request)
 
 
@@ -96,9 +104,13 @@ class TestUserDataConvertorGoogleSheetBased(TestCase):
         user_data_convertor_googlesheet = UserDataConvertorGoogleSheetBased(SpreadsheetClient(sheet_id_for_test_employee_request))
         employee = user_data_convertor_googlesheet.get_employee_details()
 
-        assert employee.mid_week_rule_override is not None
-        assert len(employee.mid_week_rule_override.weeks_to_rules_mappings[0][0]) > 0
-        assert len(employee.mid_week_rule_override.weeks_to_rules_mappings[0][2]) > 0
-        assert len(employee.mid_week_rule_override.weeks_to_rules_mappings[3][1]) > 0
+        assert employee.employee_double_request is not None
+        assert len(employee.employee_double_request.mid_weeks_to_rules_mappings[0][0]) > 0
+        assert len(employee.employee_double_request.mid_weeks_to_rules_mappings[0][2]) > 0
+        assert len(employee.employee_double_request.mid_weeks_to_rules_mappings[3][1]) > 0
+        assert len(employee.employee_double_request.weekend_rules_to_ignore) > 0
+
+
+
 
 
