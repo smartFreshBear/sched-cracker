@@ -20,6 +20,8 @@ EMPLOYEE_SHEET_ID_LOCATION = 'C9:C104'
 RULES_LOCATION = 'E9:G45'
 SHOULD_USE_CACHE_LOCATION = 'B6:B7'
 
+SLEEP_BETWEEN_SPREADSHEET_CALL = 1
+
 
 def get_all_rules():
     rules_table = SpreadsheetClient(MASTER_SHEET).load_cells_given_pair(RULES_LOCATION)
@@ -102,10 +104,9 @@ class AppRunner:
             for weekend in WeekOfTheMonth:
                 self.kill_process_if_needed()
                 logging.info("weekend-flow: getting constraints for employee {} week {}".format(employee.name, weekend))
-                time.sleep(6)
                 data_convertor.get_constraint_for_weekend(weekend, weekend_constraints)
             constraints.append(weekend_constraints)
-            time.sleep(10)
+            time.sleep(SLEEP_BETWEEN_SPREADSHEET_CALL)
             self.loading_bar = self.loading_bar + 1
             self.update_status_message(str((self.loading_bar / base) * 100) + '%', 'weekend')
         self.employees = employees
@@ -124,13 +125,11 @@ class AppRunner:
             employees.append(employee)
             midweek_constraints = EmployeeConstraintsForWeekDays(from_day_to_constraint={}, employee=employee)
             for week in WeekOfTheMonth:
-                # need to enforce less calls to api
                 logging.info("mid-week-flow: getting constraints for employee {} week {}".format(employee.name, week))
-                time.sleep(6)
                 self.kill_process_if_needed()
                 data_convertor.get_constraint_for_midweek(week, midweek_constraints)
             constraints.append(midweek_constraints)
-            time.sleep(10)
+            time.sleep(SLEEP_BETWEEN_SPREADSHEET_CALL)
             self.loading_bar = self.loading_bar + 1
             self.update_status_message(str((self.loading_bar / base) * 100) + '%', 'mid-week')
 
@@ -146,8 +145,8 @@ class AppRunner:
         employees = self.employees
         weight = 99999
         chosen_board = self.board
-        logging.info("weekend: going over on 6000 randomized options")
         base = 1000
+        logging.info("weekend: going over on {} randomized options".format(base))
         rules = get_all_rules()
 
         for i in range(base):
@@ -179,7 +178,7 @@ class AppRunner:
         convertor = self.get_result_sheet_convertor()
         for weekend in WeekOfTheMonth:
             self.kill_process_if_needed()
-            time.sleep(6)
+            time.sleep(SLEEP_BETWEEN_SPREADSHEET_CALL)
             convertor.write_weekend(weekend, self.board)
         self.update_status_message('DONE', 'weekend-algo')
 
@@ -188,8 +187,8 @@ class AppRunner:
         employees = self.employees
         weight = 99999
         chosen_board = self.board
-        logging.info("midweek: going over on 4000 randomized options")
         base = 2000
+        logging.info("midweek: going over on {} randomized options".format(base))
         rules = get_all_rules()
         for i in range(base):
             self.kill_process_if_needed()
@@ -219,7 +218,7 @@ class AppRunner:
         convertor = self.get_result_sheet_convertor()
         for week in WeekOfTheMonth:
             self.kill_process_if_needed()
-            time.sleep(6)
+            time.sleep(SLEEP_BETWEEN_SPREADSHEET_CALL)
             convertor.write_mid_week(week, self.board)
         self.update_status_message('DONE', 'midweek-algo')
 

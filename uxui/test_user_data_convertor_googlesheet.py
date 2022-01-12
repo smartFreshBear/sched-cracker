@@ -86,18 +86,18 @@ class TestUserDataConvertorGoogleSheetBased(TestCase):
     def test_get_mid_week_double_shift(self):
         user_data_convertor_googlesheet = UserDataConvertorGoogleSheetBased(SpreadsheetClient(sheet_id_for_test_employee_request))
         list_of_double_shift_request = user_data_convertor_googlesheet.get_double_shift_for_employee_mid_week()
-        assert list_of_double_shift_request[1][0].text == 'True'
-        assert list_of_double_shift_request[2][0].text == 'False'
+        assert list_of_double_shift_request[1][0].text == 'TRUE'
+        assert list_of_double_shift_request[2][0].text == 'FALSE'
         print(list_of_double_shift_request)
 
     def test_get_weekend_double_shift(self):
         user_data_convertor_googlesheet = UserDataConvertorGoogleSheetBased(SpreadsheetClient(sheet_id_for_test_employee_request))
         list_of_double_shift_request = user_data_convertor_googlesheet.get_double_shift_for_employee_weekend()
 
-        assert list_of_double_shift_request[0][0].text == 'True'
-        assert list_of_double_shift_request[1][0].text == 'False'
-        assert list_of_double_shift_request[2][0].text == 'True'
-        assert list_of_double_shift_request[3][0].text == 'False'
+        assert list_of_double_shift_request[0][0].text == 'TRUE'
+        assert list_of_double_shift_request[1][0].text == 'FALSE'
+        assert list_of_double_shift_request[2][0].text == 'TRUE'
+        assert list_of_double_shift_request[3][0].text == 'FALSE'
         print(list_of_double_shift_request)
 
 
