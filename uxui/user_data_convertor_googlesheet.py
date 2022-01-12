@@ -136,7 +136,7 @@ class UserDataConvertorGoogleSheetBased:
         for week_index, double_for_week in enumerate(self.batchify(self.get_double_shift_for_employee_mid_week(),
                                                                    week_rows_amount_in_ui)):
             for shift_index, double_shift_cells in enumerate(double_for_week[1:4]):
-                if double_shift_cells[0].text == 'True':
+                if double_shift_cells[0].text == 'TRUE':
                     if week_index not in employee_double_shift_req.mid_weeks_to_rules_mappings:
                         employee_double_shift_req.mid_weeks_to_rules_mappings[week_index] = {}
                     employee_double_shift_req.mid_weeks_to_rules_mappings[week_index][shift_index] = \
@@ -145,7 +145,7 @@ class UserDataConvertorGoogleSheetBased:
     def handle_weekend_double_shift(self, employee_double_shift_req):
         double_shift_cell = self.get_double_shift_for_employee_weekend()
         for i, weekend_shift in enumerate(WeekendShiftsTypes.get_literally_all()):
-            if double_shift_cell[i][0].text.lower() == 'true':
+            if double_shift_cell[i][0].text == 'TRUE':
                 employee_double_shift_req.weekend_rules_to_ignore. \
                     extend(from_double_shift_weekend_to_list_of_canceled_rules[weekend_shift])
 

@@ -10,17 +10,15 @@ from googleapiclient.discovery import build
 from googleapiclient.discovery_cache.base import Cache
 
 from uxui.uiobjects.Cell import *
+import re
+
 
 PATH_TO_CRED = "token.pickle"
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
 
-# The ID and range of a sample spreadsheet.
-
-# TODO remove and take as parameter
-SAMPLE_SPREADSHEET_ID = '1HMsTxrDeekNQRVNaTQT3xg3iksvzHVzQ_PCIx1xPsTE'
-
+LOCATION_OF_ALL_SHEET = 'A1:T32'
 
 class MemoryCache(Cache):
     _CACHE = {}
@@ -57,33 +55,36 @@ class SpreadsheetClient:
     def __init__(self, sheet_id):
         self.spreadsheet_service = self.get_spreadsheetservice().spreadsheets()
         self.sheet_id = sheet_id
+        self.all_cells_of_sheet = self.spreadsheet_service.values().get(spreadsheetId=self.sheet_id,
+                                    range=LOCATION_OF_ALL_SHEET).execute()
 
     def load_cells_given_pair(self, pair_str):
         splitted_to_cells = pair_str.split(':')
         return self.load_cells_given_from_to(splitted_to_cells[0], splitted_to_cells[1])
 
-    def load_cells_given_from_to(self, from_cell, to_cell) -> list[list[Cell]]:
-        cell_range = '{}:{}'.format(from_cell, to_cell)
-        sheet = self.spreadsheet_service
 
-        result = sheet.get(spreadsheetId=self.sheet_id,
-                           includeGridData=True,
-                           ranges=cell_range).execute()
+    @staticmethod
+    def from_letter_to_number(letter):
+        return [ord(x) - 96 for x in letter.lower()].pop()
+
+    def load_cells_given_from_to(self, from_cell, to_cell) -> list[list[Cell]]:
+
+
+        from_row = int(re.split('(\d+)', from_cell)[1]) - 1
+        to_row = int(re.split('(\d+)', to_cell)[1])
+
+        from_column = self.from_letter_to_number(re.split('(\d+)', from_cell)[0]) - 1
+        to_column = self.from_letter_to_number(re.split('(\d+)', to_cell)[0])
+
+        relevant_cells = [sheet_raw_row[from_column: to_column] for sheet_raw_row in self.all_cells_of_sheet['values'][from_row: to_row]]
 
         cell_table = list()
-        for row in result['sheets'][0]['data'][0]['rowData']:
+        for given_raw in relevant_cells:
             row_of_cells = list()
-            if 'values' in row:
-                for sheet_cell in row['values']:
-                    entered_value = sheet_cell.get('userEnteredValue', None)
-                    user_str = '' if entered_value is None else str(list(entered_value.values())[0])
-                    cell = Cell(color=sheet_cell.get('effectiveFormat', {}).get('backgroundColor', {}), text=user_str)
+            for sheet_cell_value in given_raw:
+                row_of_cells.append(Cell(text=sheet_cell_value))
+            cell_table.append(row_of_cells)
 
-                    row_of_cells.append(cell)
-                cell_table.append(row_of_cells)
-
-        del result
-        gc.collect()
         return cell_table
 
     def update_cells_given_from_to_and_cells(self, from_cell, to_cell, cells: list[list[Cell]]) -> bool:
@@ -106,16 +107,3 @@ class SpreadsheetClient:
 
         return response is not None
 
-
-if __name__ == '__main__':
-
-    client = SpreadsheetClient('1bIqr2NTI51xVMCtROVq2IOltztkArZLvmtPyJvXvbXs')
-
-    table = client.load_cells_given_from_to('E13', 'I15')
-    lst = ['what', 'am', 'I', 'doing', 'with', 'my', 'life', 'now']
-    for row in table:
-        for i, cell in enumerate(row):
-            cell.text = lst[i % 8]
-
-    worked = client.update_cells_given_from_to_and_cells('E13', 'I15', table)
-    assert worked
