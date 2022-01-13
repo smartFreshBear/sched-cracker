@@ -72,7 +72,7 @@ class AppRunner:
         master_sheet_client = SpreadsheetClient(MASTER_SHEET)
         global LOAD_CONSTRAINTS_FROM_CACHE
         LOAD_CONSTRAINTS_FROM_CACHE = master_sheet_client.load_cells_given_pair(SHOULD_USE_CACHE_LOCATION)[0][
-                                          0].text == 'True'
+                                          0].text == 'TRUE'
 
     @staticmethod
     def get_all_employee_ids():
