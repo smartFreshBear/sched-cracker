@@ -227,7 +227,7 @@ class AppRunner:
         app_runner.did_midweek_started = True
         global MASTER_SHEET
         MASTER_SHEET = master_sheet_id
-
+        app_runner.should_load_constraint_from_cached()
         if LOAD_CONSTRAINTS_FROM_CACHE:
             mid_week_constraints = load_constraints_mid_week_from_cache()
         else:
