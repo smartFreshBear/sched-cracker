@@ -1,7 +1,6 @@
 from enum import IntEnum
 
 
-
 class DaysOfWeek(IntEnum):
     Sunday = 1,
     Monday = 2,
@@ -86,10 +85,6 @@ class MidWeekShiftType(IntEnum):
         }[index]
 
 
-
-
-
-
 class Day:
     def __init__(self):
         self.from_shift_to_employee = {
@@ -140,11 +135,14 @@ class EmployeeDoubleShiftRequirement:
                  weekend_rules_to_ignore=None):
         if weekend_rules_to_ignore is None:
             self.weekend_rules_to_ignore = []
+        else:
+            self.weekend_rules_to_ignore = weekend_rules_to_ignore
+
         if weeks_to_ignored_rules_mappings is None:
             self.mid_weeks_to_rules_mappings = {}
         else:
             self.mid_weeks_to_rules_mappings = weeks_to_ignored_rules_mappings
-            self.weekend_rules_to_ignore = weekend_rules_to_ignore
+
 
 
 class Employee:
@@ -154,7 +152,6 @@ class Employee:
                  new=False,
                  priority=100,
                  employee_doube_req: EmployeeDoubleShiftRequirement = EmployeeDoubleShiftRequirement()):
-
         self.name = name
         self.sex = sex
         self.isNew = new
@@ -177,7 +174,12 @@ class Employee:
         return self.name + self.sex
 
 
-class EmployeeConstraintsForWeekends:
+class Constraints:
+    def get_constraints_for_shift(self, week: int, day: int):
+        pass
+
+
+class EmployeeConstraintsForWeekends(Constraints):
     def __init__(self, from_weekend_to_constraints: dict[WeekOfTheMonth, list[WeekendShiftsTypes]] = None,
                  employee: Employee = None):
         self.employee = employee
@@ -186,14 +188,14 @@ class EmployeeConstraintsForWeekends:
     def __str__(self):
         return "{} : {} ".format(self.employee, self.from_day_to_constraint)
 
-    def get_constraints_for_shift(self, week: int):
+    def get_constraints_for_shift(self, week: int, day: int):
         constraints_for_weekend = self.from_day_to_constraint.get(WeekOfTheMonth.from_int_zero(index=week), [])
         if WeekendShiftsTypes.All in constraints_for_weekend:
             return WeekendShiftsTypes.get_literally_all()
         return constraints_for_weekend
 
 
-class EmployeeConstraintsForWeekDays:
+class EmployeeConstraintsForWeekDays(Constraints):
     def __init__(self, from_day_to_constraint: dict[(WeekOfTheMonth, DaysOfWeek), list[MidWeekShiftType]],
                  employee: Employee):
         self.from_day_to_constraint = from_day_to_constraint
