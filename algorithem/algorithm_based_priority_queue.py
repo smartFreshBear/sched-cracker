@@ -12,28 +12,32 @@ from_shift_to_weight = {
 }
 
 
+def get_relevant_employees_shift(weekend_index, day_index, employees, constraints, shift):
+    random.shuffle(constraints)
+    not_relevant_employees = [constraints.employee for constraints in constraints if
+                              shift in constraints.get_constraints_for_shift(weekend_index, day_index)]
+    return [employee for employee in employees if employee not in not_relevant_employees]
+
+
 def get_relevant_employees_for_weekend_shift(weekend_index, employees, weekend_constraints, shift):
     random.shuffle(weekend_constraints)
-    least_prioritised_employees = [weekend_constraint.employee for weekend_constraint in weekend_constraints if
-                                   shift in weekend_constraint.get_constraints_for_shift(weekend_index)]
-    return [employee for employee in employees if employee not in least_prioritised_employees]
+    not_relevant_employees = [weekend_constraint.employee for weekend_constraint in weekend_constraints if
+                              shift in weekend_constraint.get_constraints_for_shift(weekend_index)]
+    return [employee for employee in employees if employee not in not_relevant_employees]
 
 
-def get_relevant_employees_for_mid_week_shift(week_index, day_index, employees, midweek_demands, shift):
-    random.shuffle(midweek_demands)
-    least_prioritised_employees_names = [midweek_constraint.employee for midweek_constraint in midweek_demands if
-                                         shift in midweek_constraint.get_constraints_for_shift(week_index, day_index)]
+def get_relevant_employees_for_mid_week_shift(week_index, day_index, employees, constraints, shift):
+    random.shuffle(constraints)
+    not_relevant_employees = [midweek_constraint.employee for midweek_constraint in constraints if
+                              shift in midweek_constraint.get_constraints_for_shift(week_index, day_index)]
 
-    relevant_employee = [employee for employee in employees if (employee not in least_prioritised_employees_names)]
-
-    return relevant_employee
+    return [employee for employee in employees if (employee not in not_relevant_employees)]
 
 
 def does_all_rule_applied(rules, employee, board, week, day, shift) -> bool:
     return Rules.check_for_list_of_rules(employee, board, week, day, shift, rules)
 
 
-# try to merge the two functions
 def solve_weekend(board: PlanningBoard,
                   employees: list[Employee],
                   weekend_demands: list[EmployeeConstraintsForWeekends],
@@ -50,25 +54,15 @@ def solve_weekend(board: PlanningBoard,
 
         employee_temp = copy.deepcopy(employees)
         for shift in WeekendShiftsTypes.get_literally_all():
-            employees_for_week_i_shift = get_relevant_employees_for_weekend_shift(week_index, employee_temp,
-                                                                                  weekend_demands, shift)
-            # u already calculate rest of employee! above!
 
-            rest_of_employees = [employee for employee in employee_temp if
-                                 employee not in employees_for_week_i_shift]
+            employee_candidate = handle_shift(board, None, employee_temp,rules,shift,should_force_shift,weekend_demands,week_index)
 
-            if should_force_shift:
-                add_reduced_priority_employees(employees_for_week_i_shift, rest_of_employees)
-
-            employee_candidate = get_first_prioritized_valid_employee(board, employees_for_week_i_shift,
-                                                                      rules, week_index, None, shift)
             if employee_candidate is not None:
 
                 weekend.from_shift_to_employee[shift] = employee_candidate
 
                 employee_temp.remove(employee_candidate)
 
-                # reduce availability for next allocation
                 [employee for employee in employees if employee.name == employee_candidate.name].pop().priority -= 1
 
                 print("employ {} successfully got allocated to weekend {} shift {}".format(employee_candidate.name,
@@ -100,18 +94,9 @@ def solve_mid_week(board: PlanningBoard,
         for day_index, day in enumerate(days_in_week):
             employee_temp = copy.deepcopy(employees)
             for shift in MidWeekShiftType.get_literally_all():
-                employees_for_week_i_shift = get_relevant_employees_for_mid_week_shift(week_index, day_index,
-                                                                                       employee_temp,
-                                                                                       week_days_demands, shift)
-                rest_of_employees = [employee for employee in employee_temp if
-                                     employee not in employees_for_week_i_shift]
 
-                if should_force_shift:
-                    add_reduced_priority_employees(employees_for_week_i_shift, rest_of_employees)
-                # put re-arrange
-
-                employee_candidate = get_first_prioritized_valid_employee(board, employees_for_week_i_shift,
-                                                                          rules, week_index, day_index, shift)
+                employee_candidate = handle_shift(board, day_index, employee_temp, rules, shift, should_force_shift,
+                                                  week_days_demands, week_index)
 
                 if employee_candidate is not None:
                     # allocate shift to worker
@@ -119,17 +104,33 @@ def solve_mid_week(board: PlanningBoard,
                     # remove from day so it wont be allocated in other shift
                     employee_temp.remove(employee_candidate)
                     # reduce availability for next allocation
-                    [employee for employee in employees if employee.name == employee_candidate.name].pop().priority -= from_shift_to_weight[shift]
+                    [employee for employee in employees if employee.name == employee_candidate.name].pop().priority -= \
+                        from_shift_to_weight[shift]
 
                     print(
-                        "employ {} successfully got allocated to week {} day {} shift {}".format(employee_candidate.name,
-                                                                                                 week_index, day_index,
-                                                                                                 shift))
+                        "employ {} successfully got allocated to week {} day {} shift {}".format(
+                            employee_candidate.name,
+                            week_index, day_index,
+                            shift))
                 else:
                     print(
                         "can not found any allocation for week {} day {} shift {}".format(week_index, day_index, shift))
 
         week_index += 1
+
+
+def handle_shift(board, day_index, employee_temp, rules, shift, should_force_shift, week_days_demands, week_index):
+    employees_for_week_i_shift = get_relevant_employees_shift(week_index, day_index,
+                                                              employee_temp,
+                                                              week_days_demands, shift)
+    rest_of_employees = [employee for employee in employee_temp if
+                         employee not in employees_for_week_i_shift]
+    if should_force_shift:
+        add_reduced_priority_employees(employees_for_week_i_shift, rest_of_employees)
+
+    employee_candidate = get_first_prioritized_valid_employee(board, employees_for_week_i_shift,
+                                                              rules, week_index, day_index, shift)
+    return employee_candidate
 
 
 def get_first_prioritized_valid_employee(board, employees_for_week_i_shift, rules, week, day, shift):
