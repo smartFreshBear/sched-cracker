@@ -187,7 +187,7 @@ class AppRunner:
         employees = self.employees
         weight = 99999
         chosen_board = self.board
-        base = 2000
+        base = 3000
         logging.info("midweek: going over on {} randomized options".format(base))
         rules = get_all_rules()
         for i in range(base):
